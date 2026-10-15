@@ -112,9 +112,28 @@ function updateStats() {
   $('verified-count').textContent = String(places.filter(p => featureValue(p, 'wheelchair') === 'yes').length);
   $('report-count').textContent = String(reports.length);
 }
-function makeMarkerIcon(index, type = 'place') {
-  const className = type === 'report' ? 'custom-marker report' : 'custom-marker';
-  return L.divIcon({ className: '', html: `<div class="${className}"><span>${type === 'report' ? '!' : index}</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
+function categoryStyle(category) {
+  const c = String(category || '').toLowerCase();
+  if (c.includes('park')) return { symbol: '⌁', variant: 'park' };
+  if (c.includes('library')) return { symbol: '▤', variant: 'library' };
+  if (c.includes('restroom')) return { symbol: '⧉', variant: 'restroom' };
+  if (c.includes('transit') || c.includes('stop')) return { symbol: '⇄', variant: 'transit' };
+  if (c.includes('parking')) return { symbol: 'P', variant: 'parking' };
+  if (c.includes('sidewalk') || c.includes('path') || c.includes('route')) return { symbol: '═', variant: 'path' };
+  return { symbol: '⌖', variant: 'default' };
+}
+function makeMarkerIcon(place, index) {
+  const { symbol, variant } = categoryStyle(place.category);
+  return L.divIcon({
+    className: '',
+    html: `<div class="custom-marker cat-${variant}" title="${escapeHTML(place.category)}"><span>${escapeHTML(symbol)}</span></div>`,
+    iconSize: [33, 40],
+    iconAnchor: [16, 38],
+    popupAnchor: [0, -35]
+  });
+}
+function makeReportIcon() {
+  return L.divIcon({ className: '', html: '<div class="custom-marker report"><span>!</span></div>', iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
 }
 function initMap() {
   if (!window.L) {
@@ -131,7 +150,7 @@ function initMap() {
     : null;
   if (placeLayer) map.addLayer(placeLayer);
   places.forEach((place, index) => {
-    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(index + 1) });
+    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(place, index + 1) });
     marker.bindPopup(popupHTML(place));
     marker.on('click', () => selectPlace(place.id, false));
     placeMarkers.set(place.id, marker);
@@ -206,7 +225,7 @@ function renderReportMarkers() {
     // Reports are about a venue in this prototype, not an exact obstacle coordinate.
     // Use a small deterministic offset so multiple report pins do not completely overlap.
     const offset = 0.00035 * (index + 1);
-    const marker = L.marker([place.lat + offset, place.lng + offset], { icon: makeMarkerIcon(0, 'report') }).addTo(map);
+    const marker = L.marker([place.lat + offset, place.lng + offset], { icon: makeReportIcon() }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
     marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${escapeHTML(report.type)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
