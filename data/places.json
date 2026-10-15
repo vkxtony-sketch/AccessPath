@@ -90,6 +90,14 @@
       "sourceId": "lfpl-crescent-hill",
       "lastChecked": "2026-10-14"
     },
+    "sidewalk": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "path",
+      "detail": "No reliable source provides a walkway width for this location.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
