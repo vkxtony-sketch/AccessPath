@@ -62,6 +62,27 @@ function readReports() {
     return [];
   }
 }
+function downscalePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const max = 480;
+        const scale = Math.min(1, max / Math.max(image.width, image.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      image.onerror = reject;
+      image.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 function saveReports() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
@@ -490,7 +511,7 @@ function renderReportMarkers() {
     const lng = Number.isFinite(report.lng) ? report.lng : place.lng + offset;
     const marker = L.marker([lat, lng], { icon: makeReportIcon() }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
-    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${escapeHTML(report.type)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}<p><small>Saved on this device</small></p></div>`);
+    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${escapeHTML(report.type)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
   });
 }
@@ -560,7 +581,7 @@ function bindEvents() {
     showToast('Tap the map where the barrier is, then finish the report.');
   });
   $('report-dialog').addEventListener('click', event => { if (event.target === $('report-dialog')) closeReportDialog(); });
-  $('report-form').addEventListener('submit', event => {
+  $('report-form').addEventListener('submit', async event => {
     event.preventDefault();
     const placeId = $('report-place').value;
     const type = $('report-type').value;
@@ -568,6 +589,11 @@ function bindEvents() {
     const status = document.querySelector('input[name="report-status"]:checked')?.value || 'unconfirmed';
     if (!placeId || !type) { showToast('Choose a location and barrier type first.'); return; }
     const report = { id: `r-${Date.now()}`, placeId, type, notes, status, createdAt: new Date().toISOString() };
+    const file = $('report-photo') && $('report-photo').files ? $('report-photo').files[0] : null;
+    if (file) {
+      try { report.photo = await downscalePhoto(file); }
+      catch (error) { console.warn('AccessPath could not read the photo:', error); showToast('The photo could not be added, but the report will still be saved.'); }
+    }
     if (reportPin) { report.lat = reportPin.lat; report.lng = reportPin.lng; }
     reports.unshift(report);
     if (!saveReports()) { reports.shift(); return; }

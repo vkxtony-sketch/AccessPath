@@ -16,3 +16,6 @@
 .area-control{font-size:18px;line-height:30px;text-align:center;color:var(--forest)!important}.area-control:hover{background:#f1f5ef}.area-control.active{background:var(--forest);color:#fff!important}
 .custom-marker.cat-park{background:#3f7d4f}.custom-marker.cat-library{background:#2b5d8a}.custom-marker.cat-restroom{background:#7a5ba6}.custom-marker.cat-transit{background:#b06a1f}.custom-marker.cat-parking{background:#2b5d8a}.custom-marker.cat-path{background:#4f7a6a}.custom-marker.cat-default{background:#245648}
 .layers{display:flex;flex-wrap:wrap;gap:6px}.layers label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#46564f;border:1px solid var(--line);border-radius:20px;padding:5px 10px;cursor:pointer;background:#fff}.layers label:has(input:not(:checked)){opacity:.45}.layers input{margin:0;accent-color:var(--forest)}
+.optional{font-weight:500;color:var(--muted);font-size:11px}
+.field-hint{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
+.report-photo{display:block;max-width:100%;margin-top:8px;border-radius:8px}
