@@ -78,13 +78,32 @@ function placeSources(place) {
     .map(sourceById)
     .filter(Boolean);
 }
+const ABBREVIATIONS = {
+  ave: 'avenue', av: 'avenue', st: 'street', rd: 'road', blvd: 'boulevard', dr: 'drive',
+  pl: 'place', ln: 'lane', ct: 'court', hwy: 'highway', pkwy: 'parkway', cir: 'circle',
+  n: 'north', s: 'south', e: 'east', w: 'west', ne: 'northeast', nw: 'northwest',
+  se: 'southeast', sw: 'southwest', ky: 'kentucky'
+};
+function normalizeText(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[.,#]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(word => ABBREVIATIONS[word] || word)
+    .join(' ');
+}
+function searchHaystack(place) {
+  return normalizeText(`${place.name} ${place.address} ${place.category} ${place.short} ${place.neighborhood || ''}`);
+}
 function currentFilteredPlaces() {
-  const query = $('search-input').value.trim().toLowerCase();
+  const terms = normalizeText($('search-input').value.trim()).split(' ').filter(Boolean);
   const wantsWheelchair = $('filter-wheelchair').checked;
   const wantsParking = $('filter-parking').checked;
   const wantsTactile = $('filter-tactile').checked;
   return places.filter(place => {
-    const matchesText = !query || `${place.name} ${place.address} ${place.category} ${place.short}`.toLowerCase().includes(query);
+    const haystack = searchHaystack(place);
+    const matchesText = terms.every(term => haystack.includes(term));
     const matchesCategory = categoryEnabled[place.category] !== false;
     const matchesArea = !areaFilter || areaFilter.contains([place.lat, place.lng]);
     const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
