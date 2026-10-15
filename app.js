@@ -474,6 +474,20 @@ function renderPlaceList() {
   updateMarkerVisibility(filtered.map(place => place.id));
   updateUrlState();
 }
+function renderSources() {
+  const body = $('sources-body');
+  if (!body) return;
+  const entries = Object.entries(sources);
+  if (!entries.length) { body.innerHTML = '<p class="muted">No sources are loaded.</p>'; return; }
+  body.innerHTML = entries.map(([id, source]) => {
+    const uses = [];
+    places.forEach(place => DETAIL_FEATURES.forEach(feature => {
+      const data = place[feature.key];
+      if (data && data.sourceId === id) uses.push(`${place.name} \u2014 ${feature.label}`);
+    }));
+    return `<article class="source-card"><h3><a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} \u2197</a></h3><p class="muted">${escapeHTML(source.publisher || '')}${source.retrievedAt ? ` \u00B7 retrieved ${escapeHTML(source.retrievedAt)}` : ''}</p>${source.notes ? `<p class="source-notes">${escapeHTML(source.notes)}</p>` : ''}<p class="source-uses">${uses.length ? `Cited ${uses.length} time${uses.length === 1 ? '' : 's'}: ${escapeHTML(uses.slice(0, 8).join('; '))}${uses.length > 8 ? ' \u2026' : ''}` : 'Not directly cited by a location field.'}</p></article>`;
+  }).join('');
+}
 function renderProgress() {
   const body = $('progress-body');
   if (!body) return;
@@ -1389,6 +1403,7 @@ function init() {
   renderSavedPlaces();
   renderHistory();
   renderProgress();
+  renderSources();
   bindEvents();
   initMap();
   renderPlaceList();

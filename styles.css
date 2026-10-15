@@ -90,6 +90,12 @@ html[data-theme="dark"] .map-expand,html[data-theme="dark"] .detail-save,html[da
 .prog-bar i{display:block;height:100%;background:var(--forest);border-radius:8px}
 .prog-num{text-align:right;font-weight:700;color:var(--muted)}
 .export-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.sources-body{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.source-card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--white)}
+.source-card h3{font:700 14px Manrope,sans-serif;margin:0 0 4px}
+.source-card h3 a{text-decoration:none;color:var(--forest)}
+.source-notes{font-size:12px;color:#40504a;margin:8px 0}
+.source-uses{font-size:11.5px;color:var(--muted);margin:0}
 html[data-textsize="large"] body{zoom:1.12}
 html[data-textsize="xlarge"] body{zoom:1.25}
 @supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}
