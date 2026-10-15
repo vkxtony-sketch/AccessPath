@@ -182,6 +182,7 @@ function renderPlaceList() {
   });
   updateStats();
   updateMarkerVisibility(filtered.map(place => place.id));
+  updateUrlState();
 }
 function updateStats() {
   $('location-count').textContent = String(places.length);
@@ -466,6 +467,7 @@ function bindEvents() {
   $('filter-neighborhood')?.addEventListener('change', renderPlaceList);
   $('use-my-location')?.addEventListener('click', locateUser);
   $('save-search')?.addEventListener('click', saveCurrentSearch);
+  $('copy-link')?.addEventListener('click', copyShareLink);
   $('reset-filters').addEventListener('click', resetFilters);
   ['header-report', 'hero-report'].forEach(id => $(id).addEventListener('click', openReportDialog));
   $('close-dialog').addEventListener('click', closeReportDialog);
@@ -578,7 +580,62 @@ function saveCurrentSearch() {
     showToast(`Saved search: ${state.label}`);
   }
 }
+let pendingUrlState = null;
+function readUrlState() {
+  const params = new URLSearchParams(location.search);
+  if (![...params.keys()].length) return null;
+  const state = {
+    query: params.get('q') || '',
+    wheelchair: params.get('wheel') === '1',
+    parking: params.get('park') === '1',
+    tactile: params.get('tact') === '1',
+    neighborhood: params.get('hood') || '',
+    sort: params.get('sort') || 'default',
+    radius: params.get('radius') || '0',
+    categories: {}
+  };
+  (params.get('hide') || '').split('|').filter(Boolean).forEach(category => { state.categories[category] = false; });
+  return state;
+}
+function applyUrlStateInputs(state) {
+  if (!state) return;
+  $('search-input').value = state.query;
+  $('filter-wheelchair').checked = state.wheelchair;
+  $('filter-parking').checked = state.parking;
+  $('filter-tactile').checked = state.tactile;
+  if ($('filter-neighborhood') && state.neighborhood) $('filter-neighborhood').value = state.neighborhood;
+  Object.assign(categoryEnabled, state.categories);
+  if ($('sort-select')) $('sort-select').value = state.sort;
+  if ($('nearby-radius')) $('nearby-radius').value = state.radius;
+}
+function updateUrlState() {
+  const state = captureSearchState();
+  const params = new URLSearchParams();
+  if (state.query) params.set('q', state.query);
+  if (state.wheelchair) params.set('wheel', '1');
+  if (state.parking) params.set('park', '1');
+  if (state.tactile) params.set('tact', '1');
+  if (state.neighborhood) params.set('hood', state.neighborhood);
+  if (state.sort !== 'default') params.set('sort', state.sort);
+  if (state.radius !== '0') params.set('radius', state.radius);
+  const hidden = Object.keys(state.categories).filter(key => state.categories[key] === false);
+  if (hidden.length) params.set('hide', hidden.join('|'));
+  const queryString = params.toString();
+  const url = queryString ? `${location.pathname}?${queryString}` : location.pathname;
+  try { history.replaceState(null, '', url); } catch (error) { /* ignore */ }
+}
 function addSourceLink(text, url) { return `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(text)} ↗</a>`; }
+function copyShareLink() {
+  const url = location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(
+      () => showToast('Shareable link copied. It restores your search and filters.'),
+      () => showToast(`Copy this link: ${url}`)
+    );
+  } else {
+    showToast(`Copy this link: ${url}`);
+  }
+}
 function categoriesInData() {
   const seen = [];
   places.forEach(place => {
@@ -602,8 +659,10 @@ function renderLayerToggles() {
 }
 function init() {
   populateReportPlaces();
-  renderLayerToggles();
   renderNeighborhoodFilter();
+  applyUrlStateInputs(pendingUrlState);
+  updateSearchSuggestions();
+  renderLayerToggles();
   renderSavedSearches();
   bindEvents();
   initMap();
@@ -634,7 +693,7 @@ async function loadData() {
     console.warn(`AccessPath could not load data/sources.json: HTTP ${sourcesResponse.status}. Source links will be limited.`);
   }
 
-  updateSearchSuggestions();
+  pendingUrlState = readUrlState();
   init();
 }
 
