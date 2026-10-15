@@ -51,6 +51,7 @@ let reportMarkers = [];
 let reportPin = null;
 let awaitingReportPin = false;
 let selectedPlaceId = null;
+let lastFocusedElement = null;
 let toastTimer = null;
 
 const $ = (id) => document.getElementById(id);
@@ -613,6 +614,7 @@ function coverageFor(place) {
 function renderDetailPanel(place) {
   const panel = $('detail-panel');
   if (!panel) return;
+  if (panel.hidden) lastFocusedElement = document.activeElement;
   const distance = placeDistance(place);
   panel.innerHTML = `
     <div class="detail-head">
@@ -628,6 +630,7 @@ function renderDetailPanel(place) {
     <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}${renderPlaceReports(place)}</div>`;
   panel.hidden = false;
   $('detail-close').addEventListener('click', closeDetailPanel);
+  panel.focus();
 }
 function renderPlaceReports(place) {
   const list = reports.filter(report => report.placeId === place.id);
@@ -645,6 +648,10 @@ function renderPlaceReports(place) {
 function closeDetailPanel() {
   const panel = $('detail-panel');
   if (panel) panel.hidden = true;
+  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+    lastFocusedElement.focus();
+    lastFocusedElement = null;
+  }
 }
 function selectPlace(id, panMap) {
   const place = places.find(item => item.id === id);
@@ -803,6 +810,15 @@ function bindEvents() {
   $('place-list').addEventListener('click', event => {
     const anchor = event.target.closest('[data-popup-place]');
     if (anchor) { event.preventDefault(); selectPlace(anchor.dataset.popupPlace, true); }
+  });
+  $('place-list').addEventListener('keydown', event => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    const cards = Array.from($('place-list').querySelectorAll('[data-place-id]'));
+    const index = cards.indexOf(document.activeElement);
+    if (index === -1) return;
+    event.preventDefault();
+    const next = event.key === 'ArrowDown' ? cards[index + 1] : cards[index - 1];
+    if (next) next.focus();
   });
   const detailPanel = $('detail-panel');
   detailPanel.addEventListener('change', event => {
