@@ -471,6 +471,18 @@ function makeReportIcon(severity, expired) {
   const variant = severity && SEVERITY_META[severity] ? ` sev-${severity}` : '';
   return L.divIcon({ className: '', html: `<div class="custom-marker report${variant}${expired ? ' expired' : ''}"><span>!</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
 }
+function toggleMapExpand() {
+  const wrap = document.querySelector('.map-wrap');
+  const button = $('map-expand');
+  if (!wrap) return;
+  const expanded = wrap.classList.toggle('expanded');
+  if (button) {
+    button.textContent = expanded ? 'Exit full screen' : 'Expand map';
+    button.setAttribute('aria-pressed', String(expanded));
+  }
+  document.body.classList.toggle('map-expanded', expanded);
+  if (map) setTimeout(() => map.invalidateSize(), 220);
+}
 function initMap() {
   if (!window.L) {
     $('map').innerHTML = '<div class="map-error"><strong>The interactive map could not load.</strong><p>Check your internet connection and refresh this page. You can still use the location list.</p></div>';
@@ -1012,6 +1024,7 @@ function bindEvents() {
     const remove = event.target.closest('[data-saved-remove]');
     if (remove) toggleSavedPlace(remove.dataset.savedRemove);
   });
+  $('map-expand')?.addEventListener('click', toggleMapExpand);
 }
 
 function readSavedSearches() {
