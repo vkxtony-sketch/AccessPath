@@ -467,6 +467,13 @@ function statusPill(value) {
   const meta = VALUE_META[value] || VALUE_META.unknown;
   return `<span class="mini-badge ${meta.cls}">${meta.symbol} ${escapeHTML(meta.text)}</span>`;
 }
+const EVIDENCE_META = {
+  official_source: { label: 'Official source', symbol: '\u{1F4C4}' },
+  field_checked: { label: 'Field checked', symbol: '\u{1F441}' },
+  community_report: { label: 'Community report', symbol: '\u{1F5E3}' },
+  unknown: { label: 'Unverified', symbol: '\u2754' }
+};
+function evidenceMeta(key) { return EVIDENCE_META[key] || EVIDENCE_META.unknown; }
 function daysSince(dateString) {
   const then = new Date(`${dateString}T00:00:00`);
   if (Number.isNaN(then.getTime())) return null;
@@ -500,6 +507,7 @@ function featureCard(place, feature) {
     ${featureExtras(data)}
     <div class="feature-meta">
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
+      <span class="evidence" title="Where this information comes from">${evidenceMeta(data.evidence).symbol} ${escapeHTML(evidenceMeta(data.evidence).label)}</span>
       ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>` : ''}
     </div>
   </section>`;
