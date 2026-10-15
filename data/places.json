@@ -71,6 +71,8 @@
       "evidence": "official_source",
       "scope": "branch",
       "detail": "The branch lists two accessible parking spaces next to the ramp.",
+      "spaces": 2,
+      "location": "Next to the ramp, off the parking lot",
       "sourceId": "lfpl-crescent-hill",
       "lastChecked": "2026-10-14"
     },

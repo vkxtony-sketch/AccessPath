@@ -397,13 +397,23 @@ function statusPill(value) {
   const meta = VALUE_META[value] || VALUE_META.unknown;
   return `<span class="mini-badge ${meta.cls}">${meta.symbol} ${escapeHTML(meta.text)}</span>`;
 }
+function featureExtras(data) {
+  const parts = [];
+  if (data.spaces != null) parts.push(`${data.spaces} documented space${data.spaces === 1 ? '' : 's'}`);
+  if (data.location) parts.push(data.location);
+  if (data.widthMeters != null) parts.push(`about ${data.widthMeters} m wide`);
+  if (data.surfaceType) parts.push(data.surfaceType);
+  if (!parts.length) return '';
+  return `<p class="feature-extra">${escapeHTML(parts.join(' · '))}</p>`;
+}
 function featureCard(place, feature) {
   const data = place[feature.key] || {};
   const value = typeof data.value === 'string' ? data.value : 'unknown';
   const source = sourceById(data.sourceId);
   return `<section class="feature-card">
-    <div class="feature-head"><h3>${escapeHTML(feature.label)}</h3>${statusPill(value)}</div>
+    <div class="feature-head"><h3 title="${escapeHTML(feature.plain || '')}">${escapeHTML(feature.label)}</h3>${statusPill(value)}</div>
     <p class="feature-detail">${escapeHTML(data.detail || 'No information recorded yet.')}</p>
+    ${featureExtras(data)}
     <div class="feature-meta">
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
       ${data.lastChecked ? `<span class="muted">Checked ${escapeHTML(data.lastChecked)}</span>` : ''}
