@@ -96,20 +96,35 @@ function normalizeText(value) {
 function searchHaystack(place) {
   return normalizeText(`${place.name} ${place.address} ${place.category} ${place.short} ${place.neighborhood || ''}`);
 }
+function renderNeighborhoodFilter() {
+  const select = $('filter-neighborhood');
+  if (!select) return;
+  const current = select.value;
+  const seen = [];
+  places.forEach(place => {
+    if (place.neighborhood && !seen.includes(place.neighborhood)) seen.push(place.neighborhood);
+  });
+  seen.sort((a, b) => a.localeCompare(b));
+  select.innerHTML = `<option value="">All neighborhoods</option>` +
+    seen.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('');
+  if (seen.includes(current)) select.value = current;
+}
 function currentFilteredPlaces() {
   const terms = normalizeText($('search-input').value.trim()).split(' ').filter(Boolean);
   const wantsWheelchair = $('filter-wheelchair').checked;
   const wantsParking = $('filter-parking').checked;
   const wantsTactile = $('filter-tactile').checked;
+  const neighborhood = $('filter-neighborhood')?.value || '';
   return places.filter(place => {
     const haystack = searchHaystack(place);
     const matchesText = terms.every(term => haystack.includes(term));
+    const matchesNeighborhood = !neighborhood || place.neighborhood === neighborhood;
     const matchesCategory = categoryEnabled[place.category] !== false;
     const matchesArea = !areaFilter || areaFilter.contains([place.lat, place.lng]);
     const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
     const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
     const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
-    return matchesText && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile;
+    return matchesText && matchesNeighborhood && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile;
   });
 }
 function distanceMiles(lat1, lng1, lat2, lng2) {
@@ -422,6 +437,7 @@ function resetFilters() {
   $('filter-wheelchair').checked = false;
   $('filter-parking').checked = false;
   $('filter-tactile').checked = false;
+  if ($('filter-neighborhood')) $('filter-neighborhood').value = '';
   areaFilter = null;
   const areaControl = document.querySelector('.area-control');
   if (areaControl) L.DomUtil.removeClass(areaControl, 'active');
@@ -445,6 +461,7 @@ function bindEvents() {
   ['filter-wheelchair', 'filter-parking', 'filter-tactile'].forEach(id => $(id).addEventListener('change', renderPlaceList));
   $('sort-select')?.addEventListener('change', renderPlaceList);
   $('nearby-radius')?.addEventListener('change', renderPlaceList);
+  $('filter-neighborhood')?.addEventListener('change', renderPlaceList);
   $('use-my-location')?.addEventListener('click', locateUser);
   $('reset-filters').addEventListener('click', resetFilters);
   ['header-report', 'hero-report'].forEach(id => $(id).addEventListener('click', openReportDialog));
@@ -503,6 +520,7 @@ function renderLayerToggles() {
 function init() {
   populateReportPlaces();
   renderLayerToggles();
+  renderNeighborhoodFilter();
   bindEvents();
   initMap();
   renderPlaceList();
