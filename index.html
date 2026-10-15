@@ -70,7 +70,8 @@
       </div>
       <div class="explorer-layout">
         <aside class="places-panel" aria-label="Search and accessibility filters">
-          <label class="search-box" for="search-input"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search places or neighborhoods" autocomplete="off"><button id="clear-search" class="clear-search" aria-label="Clear search" hidden>×</button></label>
+          <label class="search-box" for="search-input"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search places or neighborhoods" autocomplete="off" list="search-suggestions"><button id="clear-search" class="clear-search" aria-label="Clear search" hidden>×</button></label>
+          <datalist id="search-suggestions"></datalist>
           <div class="filter-title-row"><h3>Accessibility information</h3><button id="reset-filters" class="text-button">Reset</button></div>
           <div class="filters" role="group" aria-label="Filter places by documented feature">
             <label class="filter-option"><input type="checkbox" id="filter-wheelchair"><span class="fake-check" aria-hidden="true"></span><span>Wheelchair access documented</span></label>

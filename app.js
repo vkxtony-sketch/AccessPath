@@ -408,8 +408,20 @@ function resetFilters() {
   if (areaControl) L.DomUtil.removeClass(areaControl, 'active');
   renderPlaceList();
 }
+function updateSearchSuggestions() {
+  const list = $('search-suggestions');
+  if (!list) return;
+  const query = $('search-input').value.trim().toLowerCase();
+  const matches = places
+    .filter(place => !categoryEnabled || categoryEnabled[place.category] !== false)
+    .filter(place => !query || `${place.name} ${place.address} ${place.neighborhood || ''}`.toLowerCase().includes(query))
+    .slice(0, 8);
+  list.innerHTML = matches
+    .map(place => `<option value="${escapeHTML(place.name)}">${escapeHTML(place.address)}</option>`)
+    .join('');
+}
 function bindEvents() {
-  $('search-input').addEventListener('input', renderPlaceList);
+  $('search-input').addEventListener('input', () => { updateSearchSuggestions(); renderPlaceList(); });
   $('clear-search').addEventListener('click', () => { $('search-input').value = ''; $('search-input').focus(); renderPlaceList(); });
   ['filter-wheelchair', 'filter-parking', 'filter-tactile'].forEach(id => $(id).addEventListener('change', renderPlaceList));
   $('sort-select')?.addEventListener('change', renderPlaceList);
@@ -501,6 +513,7 @@ async function loadData() {
     console.warn(`AccessPath could not load data/sources.json: HTTP ${sourcesResponse.status}. Source links will be limited.`);
   }
 
+  updateSearchSuggestions();
   init();
 }
 
