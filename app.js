@@ -24,6 +24,8 @@ let reports = readReports();
 let map = null;
 let placeLayer = null;
 let placeMarkers = new Map();
+let userLocation = null;
+let userMarker = null;
 let reportMarkers = [];
 let selectedPlaceId = null;
 let toastTimer = null;
@@ -164,8 +166,43 @@ function initMap() {
     else marker.addTo(map);
   });
   fitToPlaces();
+  addLocateControl();
   map.on('focus', () => { map.scrollWheelZoom.enable(); });
   renderReportMarkers();
+}
+function addLocateControl() {
+  const control = L.control({ position: 'topleft' });
+  control.onAdd = () => {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+    const link = L.DomUtil.create('a', 'locate-control', container);
+    link.href = '#';
+    link.title = 'Show my location';
+    link.setAttribute('role', 'button');
+    link.setAttribute('aria-label', 'Show my location');
+    link.innerHTML = '⌖';
+    L.DomEvent.on(link, 'click', event => { L.DomEvent.stop(event); locateUser(); });
+    return container;
+  };
+  control.addTo(map);
+}
+function locateUser() {
+  if (!navigator.geolocation) {
+    showToast('Location is not available in this browser.');
+    return;
+  }
+  showToast('Finding your location…');
+  navigator.geolocation.getCurrentPosition(position => {
+    userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.circleMarker([userLocation.lat, userLocation.lng], {
+      radius: 8, color: '#ffffff', weight: 3, fillColor: '#2b5d8a', fillOpacity: 1
+    }).addTo(map).bindTooltip('Your location');
+    map.setView([userLocation.lat, userLocation.lng], 14);
+    showToast('Showing your location. Distances are measured from here.');
+    renderPlaceList();
+  }, error => {
+    showToast(`Could not get your location: ${error.message}`);
+  }, { enableHighAccuracy: true, timeout: 10000 });
 }
 function fitToPlaces() {
   if (!map) return;
