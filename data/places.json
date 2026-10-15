@@ -74,6 +74,14 @@
       "sourceId": "lfpl-crescent-hill",
       "lastChecked": "2026-10-14"
     },
+    "door": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "entrance",
+      "detail": "Entry uses a push-button door.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
