@@ -509,14 +509,26 @@ function featureExtras(data) {
   if (!parts.length) return '';
   return `<p class="feature-extra">${escapeHTML(parts.join(' · '))}</p>`;
 }
+const FEATURE_REPORT_CATEGORY = { entrance: 'entrance', parking: 'parking', elevator: 'elevator', restroom: 'restroom', sidewalk: 'path', ramp: 'curb', door: 'entrance' };
+function featureConflict(place, feature) {
+  const category = FEATURE_REPORT_CATEGORY[feature.key];
+  const data = place[feature.key];
+  if (!category || !data) return null;
+  if (data.conflict) return data.conflict;
+  const report = reports.find(item => item.placeId === place.id && item.type === category && item.status !== 'resolved');
+  if (report && data.value === 'yes') return 'A community report mentions a related concern here. Confirm conditions before you rely on this.';
+  return null;
+}
 function featureCard(place, feature) {
   const data = place[feature.key] || {};
   const value = typeof data.value === 'string' ? data.value : 'unknown';
   const source = sourceById(data.sourceId);
+  const conflict = featureConflict(place, feature);
   return `<section class="feature-card">
     <div class="feature-head"><h3 title="${escapeHTML(feature.plain || '')}">${escapeHTML(feature.label)}</h3>${statusPill(value)}</div>
     <p class="feature-detail">${escapeHTML(data.detail || 'No information recorded yet.')}</p>
     ${featureExtras(data)}
+    ${conflict ? `<p class="conflict-warning"><span aria-hidden="true">\u26A0\uFE0F</span> ${escapeHTML(conflict)}</p>` : ''}
     <div class="feature-meta">
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
       <span class="evidence" title="Where this information comes from">${evidenceMeta(data.evidence).symbol} ${escapeHTML(evidenceMeta(data.evidence).label)}</span>

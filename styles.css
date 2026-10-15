@@ -46,3 +46,4 @@
 .conf-high{background:#dff0df;color:#2f6a3d}
 .conf-medium{background:#fbf0d5;color:#8a6317}
 .conf-low{background:#ece9e3;color:#6b6155}
+.conflict-warning{margin:0 0 8px;font-size:11.5px;color:#8a6317;background:#fbf3e0;border:1px solid #f0e0b8;border-radius:8px;padding:7px 9px}
