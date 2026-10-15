@@ -19,3 +19,10 @@
 .optional{font-weight:500;color:var(--muted);font-size:11px}
 .field-hint{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
 .report-photo{display:block;max-width:100%;margin-top:8px;border-radius:8px}
+.sev{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+.sev-high{background:#f7e0da;color:#8b3a2a}
+.sev-mid{background:#fbf0d5;color:#8a6317}
+.sev-low{background:#e6efe6;color:#3f6a4a}
+.custom-marker.report.sev-blocks{background:#b23a2a}
+.custom-marker.report.sev-difficult{background:#c68632}
+.custom-marker.report.sev-minor{background:#6f8a5f}

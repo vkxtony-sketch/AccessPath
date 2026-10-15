@@ -93,6 +93,12 @@ const BARRIER_CATEGORIES = [
   { key: 'signage', label: 'Signage or wayfinding concern', icon: '\u{1F9ED}' },
   { key: 'other', label: 'Other access concern', icon: '\u2753' }
 ];
+const SEVERITY_META = {
+  blocks: { label: 'Blocks my route', cls: 'sev-high' },
+  difficult: { label: 'Difficult but passable', cls: 'sev-mid' },
+  minor: { label: 'Minor inconvenience', cls: 'sev-low' }
+};
+function severityMeta(key) { return SEVERITY_META[key] || null; }
 function barrierCategory(key) {
   return BARRIER_CATEGORIES.find(item => item.key === key) || BARRIER_CATEGORIES.find(item => item.label === key) || { key: key || 'other', label: key || 'Access concern', icon: '\u2753' };
 }
@@ -297,8 +303,9 @@ function makeMarkerIcon(place, index) {
     popupAnchor: [0, -35]
   });
 }
-function makeReportIcon() {
-  return L.divIcon({ className: '', html: '<div class="custom-marker report"><span>!</span></div>', iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
+function makeReportIcon(severity) {
+  const variant = severity && SEVERITY_META[severity] ? ` sev-${severity}` : '';
+  return L.divIcon({ className: '', html: `<div class="custom-marker report${variant}"><span>!</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
 }
 function initMap() {
   if (!window.L) {
@@ -527,10 +534,11 @@ function renderReportMarkers() {
     const offset = 0.00035 * (index + 1);
     const lat = Number.isFinite(report.lat) ? report.lat : place.lat + offset;
     const lng = Number.isFinite(report.lng) ? report.lng : place.lng + offset;
-    const marker = L.marker([lat, lng], { icon: makeReportIcon() }).addTo(map);
+    const marker = L.marker([lat, lng], { icon: makeReportIcon(report.severity) }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
     const category = barrierCategory(report.type);
-    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${category.icon} ${escapeHTML(category.label)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
+    const severity = severityMeta(report.severity);
+    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${category.icon} ${escapeHTML(category.label)}</p>${severity ? `<p><span class="sev ${severity.cls}">${escapeHTML(severity.label)}</span></p>` : ''}<p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
   });
 }
@@ -606,8 +614,9 @@ function bindEvents() {
     const type = $('report-type').value;
     const notes = $('report-notes').value.trim();
     const status = document.querySelector('input[name="report-status"]:checked')?.value || 'unconfirmed';
+    const severity = $('report-severity') ? $('report-severity').value : '';
     if (!placeId || !type) { showToast('Choose a location and barrier type first.'); return; }
-    const report = { id: `r-${Date.now()}`, placeId, type, notes, status, createdAt: new Date().toISOString() };
+    const report = { id: `r-${Date.now()}`, placeId, type, severity, notes, status, createdAt: new Date().toISOString() };
     const file = $('report-photo') && $('report-photo').files ? $('report-photo').files[0] : null;
     if (file) {
       try { report.photo = await downscalePhoto(file); }
