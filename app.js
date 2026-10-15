@@ -82,6 +82,7 @@ function applyPrefs() {
   root.classList.toggle('pref-colorindependent', Boolean(prefs.colorIndependent));
   root.classList.toggle('pref-serif', Boolean(prefs.serif));
   root.classList.toggle('pref-reducemotion', Boolean(prefs.reduceMotion));
+  root.classList.toggle('pref-plain', Boolean(prefs.plainLanguage));
   root.classList.toggle('pref-simple', Boolean(prefs.simple));
   root.lang = prefs.language === 'es' ? 'es' : 'en';
 }
@@ -92,6 +93,7 @@ function syncPrefControls() {
   if ($('pref-cindependent')) $('pref-cindependent').checked = Boolean(prefs.colorIndependent);
   if ($('pref-serif')) $('pref-serif').checked = Boolean(prefs.serif);
   if ($('pref-reducemotion')) $('pref-reducemotion').checked = Boolean(prefs.reduceMotion);
+  if ($('pref-plain')) $('pref-plain').checked = Boolean(prefs.plainLanguage);
   if ($('pref-simple')) $('pref-simple').checked = Boolean(prefs.simple);
   if ($('pref-language')) $('pref-language').value = prefs.language || 'en';
 }
@@ -587,6 +589,7 @@ function featureCard(place, feature) {
   const conflict = featureConflict(place, feature);
   return `<section class="feature-card">
     <div class="feature-head"><h3 title="${escapeHTML(feature.plain || '')}">${escapeHTML(feature.label)}</h3>${statusPill(value)}</div>
+    ${feature.plain ? `<span class="plain-desc">${escapeHTML(feature.plain)}</span>` : ''}
     <p class="feature-detail">${escapeHTML(data.detail || 'No information recorded yet.')}</p>
     ${featureExtras(data)}
     ${conflict ? `<p class="conflict-warning"><span aria-hidden="true">\u26A0\uFE0F</span> ${escapeHTML(conflict)}</p>` : ''}
@@ -864,6 +867,7 @@ function bindEvents() {
   $('pref-cindependent')?.addEventListener('change', () => setPref('colorIndependent', $('pref-cindependent').checked));
   $('pref-serif')?.addEventListener('change', () => setPref('serif', $('pref-serif').checked));
   $('pref-reducemotion')?.addEventListener('change', () => setPref('reduceMotion', $('pref-reducemotion').checked));
+  $('pref-plain')?.addEventListener('change', () => { setPref('plainLanguage', $('pref-plain').checked); const place = places.find(item => item.id === selectedPlaceId); if (place) renderDetailPanel(place); });
   $('pref-simple')?.addEventListener('change', () => setPref('simple', $('pref-simple').checked));
   $('pref-language')?.addEventListener('change', () => { setPref('language', $('pref-language').value); applyLanguage(); });
   $('a11y-dialog')?.addEventListener('click', event => { if (event.target === $('a11y-dialog')) closePrefs(); });
