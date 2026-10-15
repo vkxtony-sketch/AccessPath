@@ -123,6 +123,7 @@ function applyPrefs() {
   root.classList.toggle('pref-serif', Boolean(prefs.serif));
   root.classList.toggle('pref-reducemotion', Boolean(prefs.reduceMotion));
   root.classList.toggle('pref-plain', Boolean(prefs.plainLanguage));
+  root.classList.toggle('pref-lowband', Boolean(prefs.lowBandwidth));
   root.classList.toggle('pref-simple', Boolean(prefs.simple));
   root.lang = prefs.language === 'es' ? 'es' : 'en';
 }
@@ -184,6 +185,7 @@ function syncPrefControls() {
   if ($('pref-serif')) $('pref-serif').checked = Boolean(prefs.serif);
   if ($('pref-reducemotion')) $('pref-reducemotion').checked = Boolean(prefs.reduceMotion);
   if ($('pref-plain')) $('pref-plain').checked = Boolean(prefs.plainLanguage);
+  if ($('pref-lowband')) $('pref-lowband').checked = Boolean(prefs.lowBandwidth);
   if ($('pref-simple')) $('pref-simple').checked = Boolean(prefs.simple);
   if ($('pref-language')) $('pref-language').value = prefs.language || 'en';
 }
@@ -484,7 +486,12 @@ function initMap() {
     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
   });
   streets.addTo(map);
-  L.control.layers({ 'Standard map': streets, 'Satellite': satellite }, null, { position: 'topright' }).addTo(map);
+  if (prefs.lowBandwidth) {
+    // Low-bandwidth mode: keep a single lightweight tile layer and skip the heavier satellite imagery.
+    map.attributionControl.addAttribution('Low-bandwidth mode');
+  } else {
+    L.control.layers({ 'Standard map': streets, 'Satellite': satellite }, null, { position: 'topright' }).addTo(map);
+  }
   placeLayer = typeof L.markerClusterGroup === 'function'
     ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 46, disableClusteringAtZoom: 15 })
     : null;
@@ -995,6 +1002,7 @@ function bindEvents() {
   $('pref-serif')?.addEventListener('change', () => setPref('serif', $('pref-serif').checked));
   $('pref-reducemotion')?.addEventListener('change', () => setPref('reduceMotion', $('pref-reducemotion').checked));
   $('pref-plain')?.addEventListener('change', () => { setPref('plainLanguage', $('pref-plain').checked); const place = places.find(item => item.id === selectedPlaceId); if (place) renderDetailPanel(place); });
+  $('pref-lowband')?.addEventListener('change', () => { setPref('lowBandwidth', $('pref-lowband').checked); showToast('Low-bandwidth mode applies after you refresh the page.'); });
   $('pref-simple')?.addEventListener('change', () => setPref('simple', $('pref-simple').checked));
   $('pref-language')?.addEventListener('change', () => { setPref('language', $('pref-language').value); applyLanguage(); });
   $('a11y-dialog')?.addEventListener('click', event => { if (event.target === $('a11y-dialog')) closePrefs(); });
