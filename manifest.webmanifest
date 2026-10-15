@@ -1,0 +1,13 @@
+{
+  "name": "AccessPath — Louisville accessibility",
+  "short_name": "AccessPath",
+  "description": "Explore public accessibility information and report potential barriers in Louisville, Kentucky.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfaf5",
+  "theme_color": "#143b35",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

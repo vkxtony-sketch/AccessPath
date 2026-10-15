@@ -1142,4 +1142,9 @@ document.addEventListener('DOMContentLoaded', () => {
       placeList.textContent = 'Location data could not be loaded. Check data/places.json.';
     }
   });
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(error => console.warn('AccessPath service worker did not register:', error));
+    });
+  }
 });
