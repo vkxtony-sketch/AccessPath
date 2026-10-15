@@ -42,3 +42,7 @@
 .report-delete{border:1px solid var(--line);background:#fff;color:#8b5147;border-radius:8px;padding:0 12px;min-height:34px;font-size:12px;font-weight:600;cursor:pointer}
 .report-delete:hover{background:#f7e9e5}
 .evidence{display:inline-block;font-size:11px;font-weight:600;color:#5a6b62;background:#eef2ec;border-radius:10px;padding:2px 8px}
+.confidence{display:inline-block;font-size:11px;font-weight:600;border-radius:10px;padding:2px 8px}
+.conf-high{background:#dff0df;color:#2f6a3d}
+.conf-medium{background:#fbf0d5;color:#8a6317}
+.conf-low{background:#ece9e3;color:#6b6155}

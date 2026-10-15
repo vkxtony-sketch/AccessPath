@@ -474,6 +474,18 @@ const EVIDENCE_META = {
   unknown: { label: 'Unverified', symbol: '\u2754' }
 };
 function evidenceMeta(key) { return EVIDENCE_META[key] || EVIDENCE_META.unknown; }
+const CONFIDENCE_META = {
+  high: { label: 'High confidence', cls: 'conf-high' },
+  medium: { label: 'Medium confidence', cls: 'conf-medium' },
+  low: { label: 'Low confidence', cls: 'conf-low' }
+};
+function confidenceFor(data) {
+  if (data.confidence && CONFIDENCE_META[data.confidence]) return CONFIDENCE_META[data.confidence];
+  const evidence = data.evidence;
+  if (evidence === 'official_source' || evidence === 'field_checked') return CONFIDENCE_META.high;
+  if (evidence === 'community_report') return CONFIDENCE_META.medium;
+  return CONFIDENCE_META.low;
+}
 function daysSince(dateString) {
   const then = new Date(`${dateString}T00:00:00`);
   if (Number.isNaN(then.getTime())) return null;
@@ -508,6 +520,7 @@ function featureCard(place, feature) {
     <div class="feature-meta">
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
       <span class="evidence" title="Where this information comes from">${evidenceMeta(data.evidence).symbol} ${escapeHTML(evidenceMeta(data.evidence).label)}</span>
+      <span class="confidence ${confidenceFor(data).cls}" title="How reliable this information is">${escapeHTML(confidenceFor(data).label)}</span>
       ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>` : ''}
     </div>
   </section>`;
