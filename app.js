@@ -474,6 +474,19 @@ function renderPlaceList() {
   updateMarkerVisibility(filtered.map(place => place.id));
   updateUrlState();
 }
+function renderProgress() {
+  const body = $('progress-body');
+  if (!body) return;
+  const totalCells = places.length * DETAIL_FEATURES.length;
+  const knownCells = places.reduce((sum, place) => sum + DETAIL_FEATURES.filter(feature => featureValue(place, feature.key) !== 'unknown').length, 0);
+  const overall = totalCells ? Math.round((knownCells / totalCells) * 100) : 0;
+  const rows = DETAIL_FEATURES.map(feature => {
+    const known = places.filter(place => featureValue(place, feature.key) !== 'unknown').length;
+    const pct = places.length ? Math.round((known / places.length) * 100) : 0;
+    return `<li><span class="prog-label">${escapeHTML(feature.label)}</span><span class="prog-bar" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="prog-num">${known}/${places.length}</span></li>`;
+  }).join('');
+  body.innerHTML = `<p class="prog-overall"><strong>${overall}%</strong> of accessibility fields across ${places.length} locations have recorded information. Unknown fields are shown as gaps, never as inaccessible.</p><ul class="prog-list">${rows}</ul>`;
+}
 function updateStats() {
   $('location-count').textContent = String(places.length);
   $('verified-count').textContent = String(places.filter(p => featureValue(p, 'wheelchair') === 'yes').length);
@@ -627,6 +640,7 @@ async function refreshData() {
     rebuildPlaceMarkers();
     renderPlaceList();
     renderSavedPlaces();
+    renderProgress();
     const place = places.find(item => item.id === selectedPlaceId);
     if (place) renderDetailPanel(place);
     if ($('last-refreshed')) $('last-refreshed').textContent = `Updated ${new Date().toLocaleTimeString()}`;
@@ -1330,6 +1344,7 @@ function init() {
   renderSavedSearches();
   renderSavedPlaces();
   renderHistory();
+  renderProgress();
   bindEvents();
   initMap();
   renderPlaceList();
