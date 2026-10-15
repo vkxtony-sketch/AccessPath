@@ -9,6 +9,7 @@
     "lng": -85.7441,
     "short": "Waterfront paths and accessible wayfinding",
     "openStatus": "Open public space",
+    "hours": { "schedule": [], "alwaysOpen": true, "note": "Open public space with no set closing time.", "sourceId": "waterfront-contact", "lastChecked": "2026-10-14" },
     "icon": "⌁",
     "infoSourceId": "waterfront-contact",
     "wheelchair": {
@@ -46,6 +47,7 @@
     "lng": -85.7005,
     "short": "Ramp, push-button entry and elevator information",
     "openStatus": "Library branch",
+    "hours": { "schedule": [ { "days": [1,2,3,4], "open": "10:00", "close": "20:00" }, { "days": [5,6], "open": "10:00", "close": "17:00" }, { "days": [0], "open": "13:00", "close": "17:00" } ], "alwaysOpen": false, "note": "Typical published branch hours. Verify current hours before visiting.", "sourceId": "lfpl-branches", "lastChecked": "2026-10-14" },
     "icon": "▤",
     "infoSourceId": "lfpl-branches",
     "wheelchair": {
@@ -83,6 +85,7 @@
     "lng": -85.6196,
     "short": "Library accessibility information published by LFPL",
     "openStatus": "Library branch",
+    "hours": { "schedule": [ { "days": [1,2,3,4], "open": "10:00", "close": "20:00" }, { "days": [5,6], "open": "10:00", "close": "17:00" }, { "days": [0], "open": "13:00", "close": "17:00" } ], "alwaysOpen": false, "note": "Typical published branch hours. Verify current hours before visiting.", "sourceId": "lfpl-branches", "lastChecked": "2026-10-14" },
     "icon": "▤",
     "infoSourceId": "lfpl-branches",
     "wheelchair": {
@@ -120,6 +123,7 @@
     "lng": -85.7588,
     "short": "Public library computer center",
     "openStatus": "Library location",
+    "hours": { "schedule": [ { "days": [1,2,3,4], "open": "10:00", "close": "20:00" }, { "days": [5,6], "open": "10:00", "close": "17:00" }, { "days": [0], "open": "13:00", "close": "17:00" } ], "alwaysOpen": false, "note": "Hours shown are a typical branch schedule and must be confirmed directly.", "sourceId": "lfpl-branches", "lastChecked": "2026-10-14" },
     "icon": "▤",
     "infoSourceId": "lfpl-branches",
     "wheelchair": {

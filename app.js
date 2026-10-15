@@ -111,11 +111,31 @@ function renderNeighborhoodFilter() {
     seen.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('');
   if (seen.includes(current)) select.value = current;
 }
+function parseHourMinute(text) {
+  const parts = String(text).split(':').map(Number);
+  return (parts[0] || 0) * 60 + (parts[1] || 0);
+}
+function isOpenNow(place, now = new Date()) {
+  const hours = place.hours;
+  if (!hours) return null;
+  if (hours.alwaysOpen) return true;
+  if (!Array.isArray(hours.schedule) || !hours.schedule.length) return null;
+  const day = now.getDay();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const today = hours.schedule.filter(slot => Array.isArray(slot.days) && slot.days.includes(day));
+  if (!today.length) return false;
+  return today.some(slot => {
+    const open = parseHourMinute(slot.open);
+    const close = parseHourMinute(slot.close);
+    return minutes >= open && minutes < close;
+  });
+}
 function currentFilteredPlaces() {
   const terms = normalizeText($('search-input').value.trim()).split(' ').filter(Boolean);
   const wantsWheelchair = $('filter-wheelchair').checked;
   const wantsParking = $('filter-parking').checked;
   const wantsTactile = $('filter-tactile').checked;
+  const wantsOpen = $('filter-open') ? $('filter-open').checked : false;
   const neighborhood = $('filter-neighborhood')?.value || '';
   return places.filter(place => {
     const haystack = searchHaystack(place);
@@ -126,7 +146,8 @@ function currentFilteredPlaces() {
     const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
     const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
     const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
-    return matchesText && matchesNeighborhood && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile;
+    const matchesOpen = !wantsOpen || isOpenNow(place) === true;
+    return matchesText && matchesNeighborhood && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile && matchesOpen;
   });
 }
 function distanceMiles(lat1, lng1, lat2, lng2) {
@@ -363,6 +384,14 @@ function featureCard(place, feature) {
     </div>
   </section>`;
 }
+function openStatusText(place) {
+  const open = isOpenNow(place);
+  if (open === null) return 'Hours not recorded.';
+  const base = open ? 'Open now' : 'Closed now';
+  const note = place.hours && place.hours.note ? place.hours.note : '';
+  const checked = place.hours && place.hours.lastChecked ? ` Hours checked ${place.hours.lastChecked}.` : '';
+  return `${base}. ${note}${checked}`.replace(/\s+/g, ' ').trim();
+}
 function renderDetailPanel(place) {
   const panel = $('detail-panel');
   if (!panel) return;
@@ -373,6 +402,7 @@ function renderDetailPanel(place) {
         <div class="eyebrow">${escapeHTML(place.category)}</div>
         <h2 id="detail-title">${escapeHTML(place.name)}</h2>
         <p class="detail-address">${escapeHTML(place.address)}${distance != null ? ` · ${formatDistance(distance)} away` : ''}</p>
+        <p class="detail-hours">${escapeHTML(openStatusText(place))}</p>
       </div>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
     </div>
@@ -440,6 +470,7 @@ function resetFilters() {
   $('filter-wheelchair').checked = false;
   $('filter-parking').checked = false;
   $('filter-tactile').checked = false;
+  if ($('filter-open')) $('filter-open').checked = false;
   if ($('filter-neighborhood')) $('filter-neighborhood').value = '';
   areaFilter = null;
   const areaControl = document.querySelector('.area-control');
@@ -462,6 +493,7 @@ function bindEvents() {
   $('search-input').addEventListener('input', () => { updateSearchSuggestions(); renderPlaceList(); });
   $('clear-search').addEventListener('click', () => { $('search-input').value = ''; $('search-input').focus(); renderPlaceList(); });
   ['filter-wheelchair', 'filter-parking', 'filter-tactile'].forEach(id => $(id).addEventListener('change', renderPlaceList));
+  $('filter-open')?.addEventListener('change', renderPlaceList);
   $('sort-select')?.addEventListener('change', renderPlaceList);
   $('nearby-radius')?.addEventListener('change', renderPlaceList);
   $('filter-neighborhood')?.addEventListener('change', renderPlaceList);
@@ -526,6 +558,7 @@ function captureSearchState() {
     wheelchair: $('filter-wheelchair').checked,
     parking: $('filter-parking').checked,
     tactile: $('filter-tactile').checked,
+    open: $('filter-open') ? $('filter-open').checked : false,
     neighborhood: $('filter-neighborhood') ? $('filter-neighborhood').value : '',
     categories: { ...categoryEnabled },
     sort: $('sort-select') ? $('sort-select').value : 'default',
@@ -537,6 +570,7 @@ function applySearchState(state) {
   $('filter-wheelchair').checked = !!state.wheelchair;
   $('filter-parking').checked = !!state.parking;
   $('filter-tactile').checked = !!state.tactile;
+  if ($('filter-open')) $('filter-open').checked = !!state.open;
   if ($('filter-neighborhood')) $('filter-neighborhood').value = state.neighborhood || '';
   Object.keys(categoryEnabled).forEach(key => delete categoryEnabled[key]);
   Object.assign(categoryEnabled, state.categories || {});
@@ -589,6 +623,7 @@ function readUrlState() {
     wheelchair: params.get('wheel') === '1',
     parking: params.get('park') === '1',
     tactile: params.get('tact') === '1',
+    open: params.get('open') === '1',
     neighborhood: params.get('hood') || '',
     sort: params.get('sort') || 'default',
     radius: params.get('radius') || '0',
@@ -603,6 +638,7 @@ function applyUrlStateInputs(state) {
   $('filter-wheelchair').checked = state.wheelchair;
   $('filter-parking').checked = state.parking;
   $('filter-tactile').checked = state.tactile;
+  if ($('filter-open')) $('filter-open').checked = state.open;
   if ($('filter-neighborhood') && state.neighborhood) $('filter-neighborhood').value = state.neighborhood;
   Object.assign(categoryEnabled, state.categories);
   if ($('sort-select')) $('sort-select').value = state.sort;
@@ -615,6 +651,7 @@ function updateUrlState() {
   if (state.wheelchair) params.set('wheel', '1');
   if (state.parking) params.set('park', '1');
   if (state.tactile) params.set('tact', '1');
+  if (state.open) params.set('open', '1');
   if (state.neighborhood) params.set('hood', state.neighborhood);
   if (state.sort !== 'default') params.set('sort', state.sort);
   if (state.radius !== '0') params.set('radius', state.radius);
