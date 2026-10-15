@@ -38,6 +38,7 @@ const STORAGE_KEY = 'accesspath-reports-v1';
 const SEARCH_KEY = 'accesspath-searches-v1';
 const PREF_KEY = 'accesspath-prefs-v1';
 const SAVED_PLACES_KEY = 'accesspath-saved-places-v1';
+const DRAFT_KEY = 'accesspath-report-draft-v1';
 const categoryEnabled = {};
 let reports = readReports();
 let savedSearches = readSavedSearches();
@@ -805,9 +806,41 @@ function openCorrection(placeId, featureKey) {
 }
 function openReportDialog() {
   if (selectedPlaceId && $('report-place') && !$('report-place').value) $('report-place').value = selectedPlaceId;
+  restoreReportDraft();
   const dialog = $('report-dialog');
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else showToast('This browser does not support the report dialog. Please update your browser.');
+}
+function saveReportDraft() {
+  const draft = {
+    placeId: $('report-place') ? $('report-place').value : '',
+    type: $('report-type') ? $('report-type').value : '',
+    severity: $('report-severity') ? $('report-severity').value : '',
+    duration: $('report-duration') ? $('report-duration').value : '',
+    expiresOn: $('report-expiry') ? $('report-expiry').value : '',
+    notes: $('report-notes') ? $('report-notes').value : '',
+    status: document.querySelector('input[name="report-status"]:checked')?.value || 'unconfirmed'
+  };
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (error) { /* storage unavailable */ }
+}
+function clearReportDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (error) { /* storage unavailable */ }
+}
+function restoreReportDraft() {
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (error) { draft = null; }
+  if (!draft) return;
+  if (draft.placeId && $('report-place')) $('report-place').value = draft.placeId;
+  if (draft.type && $('report-type')) $('report-type').value = draft.type;
+  if ($('report-severity')) $('report-severity').value = draft.severity || '';
+  if ($('report-duration')) {
+    $('report-duration').value = draft.duration || '';
+    if ($('report-expiry-field')) $('report-expiry-field').hidden = draft.duration !== 'temporary';
+  }
+  if ($('report-expiry')) $('report-expiry').value = draft.expiresOn || '';
+  if ($('report-notes')) $('report-notes').value = draft.notes || '';
+  const radio = document.querySelector(`input[name="report-status"][value="${draft.status}"]`);
+  if (radio) radio.checked = true;
 }
 function closeReportDialog() {
   $('report-dialog').close();
@@ -870,6 +903,8 @@ function bindEvents() {
     if (field) field.hidden = $('report-duration').value !== 'temporary';
   });
   $('report-dialog').addEventListener('click', event => { if (event.target === $('report-dialog')) closeReportDialog(); });
+  $('report-form').addEventListener('input', saveReportDraft);
+  $('report-form').addEventListener('change', saveReportDraft);
   $('report-form').addEventListener('submit', async event => {
     event.preventDefault();
     const placeId = $('report-place').value;
@@ -900,6 +935,7 @@ function bindEvents() {
     updateStats();
     $('report-form').reset();
     $('report-place').value = placeId;
+    clearReportDraft();
     closeReportDialog();
     showToast('Report saved on this device. It has not been sent anywhere.');
   });
