@@ -21,6 +21,7 @@ const VALUE_META = {
 const STORAGE_KEY = 'accesspath-reports-v1';
 let reports = readReports();
 let map = null;
+let placeLayer = null;
 let placeMarkers = new Map();
 let reportMarkers = [];
 let selectedPlaceId = null;
@@ -123,11 +124,17 @@ function initMap() {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
   }).addTo(map);
+  placeLayer = typeof L.markerClusterGroup === 'function'
+    ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 46, disableClusteringAtZoom: 15 })
+    : null;
+  if (placeLayer) map.addLayer(placeLayer);
   places.forEach((place, index) => {
-    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(index + 1) }).addTo(map);
+    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(index + 1) });
     marker.bindPopup(popupHTML(place));
     marker.on('click', () => selectPlace(place.id, false));
     placeMarkers.set(place.id, marker);
+    if (placeLayer) placeLayer.addLayer(marker);
+    else marker.addTo(map);
   });
   fitToPlaces();
   map.on('focus', () => { map.scrollWheelZoom.enable(); });
@@ -159,9 +166,17 @@ function updateMarkerVisibility(visibleIds) {
   if (!map) return;
   const visible = new Set(visibleIds);
   placeMarkers.forEach((marker, id) => {
-    if (visible.has(id)) {
+    if (placeLayer) {
+      if (visible.has(id)) {
+        if (!placeLayer.hasLayer(marker)) placeLayer.addLayer(marker);
+      } else if (placeLayer.hasLayer(marker)) {
+        placeLayer.removeLayer(marker);
+      }
+    } else if (visible.has(id)) {
       if (!map.hasLayer(marker)) marker.addTo(map);
-    } else if (map.hasLayer(marker)) map.removeLayer(marker);
+    } else if (map.hasLayer(marker)) {
+      map.removeLayer(marker);
+    }
   });
 }
 function selectPlace(id, panMap) {
@@ -172,7 +187,11 @@ function selectPlace(id, panMap) {
   const marker = placeMarkers.get(id);
   if (map && marker) {
     if (panMap) map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 14), { duration: .45 });
-    marker.openPopup();
+    if (placeLayer && typeof placeLayer.zoomToShowLayer === 'function') {
+      placeLayer.zoomToShowLayer(marker, () => marker.openPopup());
+    } else {
+      marker.openPopup();
+    }
   }
 }
 function renderReportMarkers() {
