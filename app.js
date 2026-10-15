@@ -39,10 +39,12 @@ const SEARCH_KEY = 'accesspath-searches-v1';
 const PREF_KEY = 'accesspath-prefs-v1';
 const SAVED_PLACES_KEY = 'accesspath-saved-places-v1';
 const DRAFT_KEY = 'accesspath-report-draft-v1';
+const HISTORY_KEY = 'accesspath-history-v1';
 const categoryEnabled = {};
 let reports = readReports();
 let savedSearches = readSavedSearches();
 let savedPlaceIds = readSavedPlaces();
+let viewHistory = readHistory();
 let prefs = readPrefs();
 let map = null;
 let placeLayer = null;
@@ -59,6 +61,33 @@ let toastTimer = null;
 
 const $ = (id) => document.getElementById(id);
 
+function readHistory() {
+  try {
+    const value = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (error) {
+    return [];
+  }
+}
+function writeHistory() {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(viewHistory)); return true; }
+  catch (error) { return false; }
+}
+function pushHistory(id) {
+  viewHistory = [id, ...viewHistory.filter(item => item !== id)].slice(0, 10);
+  writeHistory();
+  renderHistory();
+}
+function renderHistory() {
+  const box = $('recent-places');
+  if (!box) return;
+  const list = viewHistory.map(id => places.find(place => place.id === id)).filter(Boolean);
+  if (!list.length) {
+    box.innerHTML = '<p class="muted saved-empty">Locations you open will appear here.</p>';
+    return;
+  }
+  box.innerHTML = list.map(place => `<span class="saved-chip"><button type="button" class="saved-apply" data-recent-open="${escapeHTML(place.id)}">${escapeHTML(place.name)}</button></span>`).join('');
+}
 function readSavedPlaces() {
   try {
     const value = JSON.parse(localStorage.getItem(SAVED_PLACES_KEY) || '[]');
@@ -827,6 +856,7 @@ function selectPlace(id, panMap) {
   const place = places.find(item => item.id === id);
   if (!place) return;
   selectedPlaceId = id;
+  pushHistory(id);
   renderPlaceList();
   renderDetailPanel(place);
   if ($('sr-status')) $('sr-status').textContent = `Showing details for ${place.name}.`;
@@ -1079,6 +1109,10 @@ function bindEvents() {
     const remove = event.target.closest('[data-saved-remove]');
     if (remove) toggleSavedPlace(remove.dataset.savedRemove);
   });
+  $('recent-places')?.addEventListener('click', event => {
+    const open = event.target.closest('[data-recent-open]');
+    if (open) selectPlace(open.dataset.recentOpen, true);
+  });
   $('map-expand')?.addEventListener('click', toggleMapExpand);
   $('refresh-data')?.addEventListener('click', refreshData);
 }
@@ -1262,6 +1296,7 @@ function init() {
   renderLayerToggles();
   renderSavedSearches();
   renderSavedPlaces();
+  renderHistory();
   bindEvents();
   initMap();
   renderPlaceList();
