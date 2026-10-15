@@ -29,6 +29,14 @@
       "sourceId": null,
       "lastChecked": "2026-10-14"
     },
+    "communication": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "park",
+      "detail": "Hearing loops, visual alerts, and similar sensory aids have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    },
     "restroom": {
       "value": "unknown",
       "evidence": "unknown",
