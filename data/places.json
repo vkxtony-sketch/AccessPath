@@ -21,6 +21,14 @@
       "sourceId": "waterfront-accessibility",
       "lastChecked": "2026-10-14"
     },
+    "curbRamp": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "crossing",
+      "detail": "No source confirms curb-ramp details where park paths meet the street.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    },
     "restroom": {
       "value": "unknown",
       "evidence": "unknown",
