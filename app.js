@@ -10,6 +10,22 @@ const FEATURES = [
   { key: 'tactile', label: 'Tactile / Braille' }
 ];
 
+/* Full set of accessibility features shown in the location detail panel and the amenity search. */
+const DETAIL_FEATURES = [
+  { key: 'entrance', label: 'Entrance', plain: 'How you get in, and whether the way in is step-free.' },
+  { key: 'ramp', label: 'Ramp', plain: 'Whether a ramp is available and any documented limits.' },
+  { key: 'door', label: 'Automatic door', plain: 'Whether doors open automatically or have accessible controls.' },
+  { key: 'elevator', label: 'Elevator', plain: 'Whether an elevator is available between levels.' },
+  { key: 'parking', label: 'Accessible parking', plain: 'Whether accessible parking spaces are documented.' },
+  { key: 'restroom', label: 'Restroom', plain: 'Whether an accessible restroom is available and where.' },
+  { key: 'tactile', label: 'Tactile / Braille signage', plain: 'Raised-letter, Braille, or tactile wayfinding.' },
+  { key: 'communication', label: 'Communication / sensory', plain: 'Hearing loops, visual alerts, and other sensory aids.' },
+  { key: 'curbRamp', label: 'Curb ramp', plain: 'Lowered curbs where a path meets the street.' },
+  { key: 'surface', label: 'Surface', plain: 'What the path or floor is made of.' },
+  { key: 'sidewalk', label: 'Sidewalk / path width', plain: 'Documented walkway width where a source provides it.' },
+  { key: 'wheelchair', label: 'Wheelchair access (general)', plain: 'The broad wheelchair-accessibility statement for a place.' }
+];
+
 /* Every accessibility claim carries a value plus evidence. "unknown" is never proof of inaccessibility. */
 const VALUE_META = {
   yes: { cls: 'verified', symbol: '✓', text: 'documented' },
@@ -73,7 +89,7 @@ function sourceById(id) {
   return id && sources[id] ? sources[id] : null;
 }
 function placeSources(place) {
-  const ids = [place.infoSourceId, ...FEATURES.map(feature => place[feature.key]?.sourceId)];
+  const ids = [place.infoSourceId, ...DETAIL_FEATURES.map(feature => place[feature.key]?.sourceId)];
   const seen = new Set();
   return ids
     .filter(id => id && !seen.has(id) && seen.add(id))
@@ -135,8 +151,8 @@ function renderAmenityFilter() {
   if (!select) return;
   const current = select.value;
   select.innerHTML = `<option value="">Any amenity</option>` +
-    FEATURES.map(feature => `<option value="${escapeHTML(feature.key)}">${escapeHTML(feature.label)} documented</option>`).join('');
-  if (FEATURES.some(feature => feature.key === current)) select.value = current;
+    DETAIL_FEATURES.map(feature => `<option value="${escapeHTML(feature.key)}">${escapeHTML(feature.label)} documented</option>`).join('');
+  if (DETAIL_FEATURES.some(feature => feature.key === current)) select.value = current;
 }
 function currentFilteredPlaces() {
   const terms = normalizeText($('search-input').value.trim()).split(' ').filter(Boolean);
@@ -416,7 +432,7 @@ function renderDetailPanel(place) {
       </div>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
     </div>
-    <div class="detail-body">${FEATURES.map(feature => featureCard(place, feature)).join('')}</div>`;
+    <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}</div>`;
   panel.hidden = false;
   $('detail-close').addEventListener('click', closeDetailPanel);
 }

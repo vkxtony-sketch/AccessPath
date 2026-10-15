@@ -50,6 +50,14 @@
     "hours": { "schedule": [ { "days": [1,2,3,4], "open": "10:00", "close": "20:00" }, { "days": [5,6], "open": "10:00", "close": "17:00" }, { "days": [0], "open": "13:00", "close": "17:00" } ], "alwaysOpen": false, "note": "Typical published branch hours. Verify current hours before visiting.", "sourceId": "lfpl-branches", "lastChecked": "2026-10-14" },
     "icon": "▤",
     "infoSourceId": "lfpl-branches",
+    "entrance": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "entrance",
+      "detail": "Entry is reached by wheelchair ramps from the parking lot and Birchwood Avenue, through a push-button door.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
