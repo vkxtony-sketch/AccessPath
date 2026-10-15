@@ -513,14 +513,7 @@ function initMap() {
     ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 46, disableClusteringAtZoom: 15 })
     : null;
   if (placeLayer) map.addLayer(placeLayer);
-  places.forEach((place, index) => {
-    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(place, index + 1) });
-    marker.bindPopup(popupHTML(place));
-    marker.on('click', () => selectPlace(place.id, false));
-    placeMarkers.set(place.id, marker);
-    if (placeLayer) placeLayer.addLayer(marker);
-    else marker.addTo(map);
-  });
+  addPlaceMarkers();
   fitToPlaces();
   addLocateControl();
   addAreaControl();
@@ -534,6 +527,63 @@ function initMap() {
     openReportDialog();
   });
   renderReportMarkers();
+}
+function addPlaceMarkers() {
+  places.forEach((place, index) => {
+    const marker = L.marker([place.lat, place.lng], { icon: makeMarkerIcon(place, index + 1) });
+    marker.bindPopup(popupHTML(place));
+    marker.on('click', () => selectPlace(place.id, false));
+    placeMarkers.set(place.id, marker);
+    if (placeLayer) placeLayer.addLayer(marker);
+    else marker.addTo(map);
+  });
+}
+function rebuildPlaceMarkers() {
+  if (!map) return;
+  placeMarkers.forEach(marker => {
+    if (placeLayer) placeLayer.removeLayer(marker);
+    else map.removeLayer(marker);
+  });
+  placeMarkers.clear();
+  addPlaceMarkers();
+  renderReportMarkers();
+  updateMarkerVisibility(currentFilteredPlaces().map(place => place.id));
+  fitToPlaces();
+}
+async function refreshData() {
+  const button = $('refresh-data');
+  if (button) { button.disabled = true; button.textContent = 'Refreshing\u2026'; }
+  try {
+    const [placesResponse, sourcesResponse] = await Promise.all([
+      fetch('./data/places.json', { cache: 'reload' }),
+      fetch('./data/sources.json', { cache: 'reload' })
+    ]);
+    if (!placesResponse.ok) throw new Error(`HTTP ${placesResponse.status}`);
+    const placeData = await placesResponse.json();
+    if (!Array.isArray(placeData)) throw new Error('places.json must contain an array');
+    places = placeData;
+    if (sourcesResponse.ok) {
+      const sourceData = await sourcesResponse.json();
+      sources = sourceData && typeof sourceData === 'object' && !Array.isArray(sourceData) ? sourceData : {};
+    }
+    renderNeighborhoodFilter();
+    renderAmenityFilter();
+    renderLayerToggles();
+    populateReportPlaces();
+    updateSearchSuggestions();
+    rebuildPlaceMarkers();
+    renderPlaceList();
+    renderSavedPlaces();
+    const place = places.find(item => item.id === selectedPlaceId);
+    if (place) renderDetailPanel(place);
+    if ($('last-refreshed')) $('last-refreshed').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    showToast('Location data refreshed from the network.');
+  } catch (error) {
+    console.error(error);
+    showToast('Could not refresh data. Check your connection and try again.');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Refresh data'; }
+  }
 }
 function addLocateControl() {
   const control = L.control({ position: 'topleft' });
@@ -1030,6 +1080,7 @@ function bindEvents() {
     if (remove) toggleSavedPlace(remove.dataset.savedRemove);
   });
   $('map-expand')?.addEventListener('click', toggleMapExpand);
+  $('refresh-data')?.addEventListener('click', refreshData);
 }
 
 function readSavedSearches() {
