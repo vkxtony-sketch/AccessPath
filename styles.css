@@ -62,6 +62,9 @@ html.pref-contrast :focus-visible{outline-color:#000}
 .plain-desc{display:none;font-size:12px;color:#5a6b62;margin:4px 0 6px;font-style:italic}
 html.pref-plain .plain-desc{display:block}
 html.pref-simple .advanced{display:none!important}
+.detail-head-actions{display:flex;align-items:center;gap:8px}
+.detail-save{background:#fff;border:1px solid var(--line);border-radius:8px;padding:0 10px;min-height:34px;font-size:12px;font-weight:600;color:var(--forest);cursor:pointer}
+.detail-save:hover{background:#f1f5ef}
 html[data-textsize="large"] body{zoom:1.12}
 html[data-textsize="xlarge"] body{zoom:1.25}
 @supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}

@@ -37,9 +37,11 @@ const VALUE_META = {
 const STORAGE_KEY = 'accesspath-reports-v1';
 const SEARCH_KEY = 'accesspath-searches-v1';
 const PREF_KEY = 'accesspath-prefs-v1';
+const SAVED_PLACES_KEY = 'accesspath-saved-places-v1';
 const categoryEnabled = {};
 let reports = readReports();
 let savedSearches = readSavedSearches();
+let savedPlaceIds = readSavedPlaces();
 let prefs = readPrefs();
 let map = null;
 let placeLayer = null;
@@ -56,6 +58,43 @@ let toastTimer = null;
 
 const $ = (id) => document.getElementById(id);
 
+function readSavedPlaces() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SAVED_PLACES_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (error) {
+    console.warn('AccessPath could not read saved places:', error);
+    return [];
+  }
+}
+function writeSavedPlaces() {
+  try {
+    localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(savedPlaceIds));
+    return true;
+  } catch (error) {
+    console.error('AccessPath could not save places:', error);
+    return false;
+  }
+}
+function isPlaceSaved(id) { return savedPlaceIds.includes(id); }
+function toggleSavedPlace(id) {
+  if (isPlaceSaved(id)) savedPlaceIds = savedPlaceIds.filter(item => item !== id);
+  else savedPlaceIds = [id, ...savedPlaceIds.filter(item => item !== id)];
+  writeSavedPlaces();
+  renderSavedPlaces();
+  const place = places.find(item => item.id === id);
+  if (place && selectedPlaceId === id) renderDetailPanel(place);
+}
+function renderSavedPlaces() {
+  const box = $('saved-places');
+  if (!box) return;
+  const list = savedPlaceIds.map(id => places.find(place => place.id === id)).filter(Boolean);
+  if (!list.length) {
+    box.innerHTML = '<p class="muted saved-empty">No saved places yet. Open a location and tap \u201CSave place.\u201D</p>';
+    return;
+  }
+  box.innerHTML = list.map(place => `<span class="saved-chip"><button type="button" class="saved-apply" data-saved-open="${escapeHTML(place.id)}">${escapeHTML(place.name)}</button><button type="button" class="saved-remove" data-saved-remove="${escapeHTML(place.id)}" aria-label="Remove saved place">\u00D7</button></span>`).join('');
+}
 function readPrefs() {
   try {
     const value = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
@@ -679,11 +718,13 @@ function renderDetailPanel(place) {
         <p class="detail-hours">${escapeHTML(openStatusText(place))}</p>
         <p class="detail-coverage" title="How many accessibility features have recorded information">${(() => { const c = coverageFor(place); return `Data coverage ${c.pct}% · ${c.known} of ${c.total} features documented`; })()}</p>
       </div>
-      <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
+      <div class="detail-head-actions"><button type="button" class="detail-save" id="detail-save" aria-pressed="${isPlaceSaved(place.id)}">${isPlaceSaved(place.id) ? '\u2605 Saved' : '\u2606 Save place'}</button>
+      <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button></div>
     </div>
     <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}${renderPlaceReports(place)}</div>`;
   panel.hidden = false;
   $('detail-close').addEventListener('click', closeDetailPanel);
+  $('detail-save').addEventListener('click', () => toggleSavedPlace(place.id));
   panel.focus();
 }
 function renderPlaceReports(place) {
@@ -921,6 +962,12 @@ function bindEvents() {
   $('pref-simple')?.addEventListener('change', () => setPref('simple', $('pref-simple').checked));
   $('pref-language')?.addEventListener('change', () => { setPref('language', $('pref-language').value); applyLanguage(); });
   $('a11y-dialog')?.addEventListener('click', event => { if (event.target === $('a11y-dialog')) closePrefs(); });
+  $('saved-places')?.addEventListener('click', event => {
+    const open = event.target.closest('[data-saved-open]');
+    if (open) { selectPlace(open.dataset.savedOpen, true); return; }
+    const remove = event.target.closest('[data-saved-remove]');
+    if (remove) toggleSavedPlace(remove.dataset.savedRemove);
+  });
 }
 
 function readSavedSearches() {
@@ -1101,6 +1148,7 @@ function init() {
   updateSearchSuggestions();
   renderLayerToggles();
   renderSavedSearches();
+  renderSavedPlaces();
   bindEvents();
   initMap();
   renderPlaceList();
