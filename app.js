@@ -83,6 +83,24 @@ function downscalePhoto(file) {
     reader.readAsDataURL(file);
   });
 }
+const BARRIER_CATEGORIES = [
+  { key: 'path', label: 'Blocked or uneven path', icon: '\u{1F6A7}' },
+  { key: 'curb', label: 'Missing or difficult curb ramp', icon: '\u2B06\uFE0F' },
+  { key: 'entrance', label: 'Entrance access concern', icon: '\u{1F6AA}' },
+  { key: 'parking', label: 'Accessible parking concern', icon: '\u{1F17F}\uFE0F' },
+  { key: 'restroom', label: 'Restroom access concern', icon: '\u{1F6BB}' },
+  { key: 'elevator', label: 'Elevator or lift concern', icon: '\u{1F6D7}' },
+  { key: 'signage', label: 'Signage or wayfinding concern', icon: '\u{1F9ED}' },
+  { key: 'other', label: 'Other access concern', icon: '\u2753' }
+];
+function barrierCategory(key) {
+  return BARRIER_CATEGORIES.find(item => item.key === key) || BARRIER_CATEGORIES.find(item => item.label === key) || { key: key || 'other', label: key || 'Access concern', icon: '\u2753' };
+}
+function populateReportTypes() {
+  const select = $('report-type');
+  if (!select) return;
+  select.innerHTML = '<option value="">Choose a barrier type</option>' + BARRIER_CATEGORIES.map(category => `<option value="${escapeHTML(category.key)}">${category.icon} ${escapeHTML(category.label)}</option>`).join('');
+}
 function saveReports() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
@@ -511,7 +529,8 @@ function renderReportMarkers() {
     const lng = Number.isFinite(report.lng) ? report.lng : place.lng + offset;
     const marker = L.marker([lat, lng], { icon: makeReportIcon() }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
-    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${escapeHTML(report.type)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
+    const category = barrierCategory(report.type);
+    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${category.icon} ${escapeHTML(category.label)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
   });
 }
@@ -785,6 +804,7 @@ function renderLayerToggles() {
 }
 function init() {
   populateReportPlaces();
+  populateReportTypes();
   renderNeighborhoodFilter();
   renderAmenityFilter();
   applyUrlStateInputs(pendingUrlState);
