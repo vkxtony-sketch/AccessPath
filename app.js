@@ -461,7 +461,7 @@ function renderPlaceList() {
   $('place-list').innerHTML = filtered.map(place => `
     <button class="place-card ${selectedPlaceId === place.id ? 'selected' : ''}" type="button" data-place-id="${escapeHTML(place.id)}" aria-pressed="${selectedPlaceId === place.id}">
       <span class="place-glyph" aria-hidden="true">${escapeHTML(place.icon)}</span>
-      <span class="place-main"><strong>${escapeHTML(place.name)}</strong><span class="place-address">${escapeHTML(place.address)}</span><span class="place-badges">${getAccessBadges(place)}${userLocation ? `<span class="mini-badge distance">${formatDistance(placeDistance(place))}</span>` : ''}</span></span>
+      <span class="place-main"><strong>${escapeHTML(place.name)}</strong><span class="place-address">${escapeHTML(place.address)}</span>      <span class="place-badges">${getAccessBadges(place)}<span class="mini-badge coverage-grade" title="Documented accessibility data coverage">Data ${coverageFor(place).grade}</span>${userLocation ? `<span class="mini-badge distance">${formatDistance(placeDistance(place))}</span>` : ''}</span></span>
       <span class="place-arrow" aria-hidden="true">↗</span>
     </button>`).join('');
   $('no-results').hidden = filtered.length !== 0;
@@ -830,7 +830,9 @@ function openStatusText(place) {
 function coverageFor(place) {
   const total = DETAIL_FEATURES.length;
   const known = DETAIL_FEATURES.filter(feature => featureValue(place, feature.key) !== 'unknown').length;
-  return { known, total, pct: total ? Math.round((known / total) * 100) : 0 };
+  const pct = total ? Math.round((known / total) * 100) : 0;
+  const grade = pct >= 90 ? 'A' : pct >= 75 ? 'B' : pct >= 55 ? 'C' : pct >= 35 ? 'D' : 'F';
+  return { known, total, pct, grade };
 }
 function renderDetailPanel(place) {
   const panel = $('detail-panel');
@@ -844,7 +846,7 @@ function renderDetailPanel(place) {
         <h2 id="detail-title">${escapeHTML(place.name)}</h2>
         <p class="detail-address">${escapeHTML(place.address)}${distance != null ? ` · ${formatDistance(distance)} away` : ''}</p>
         <p class="detail-hours">${escapeHTML(openStatusText(place))}</p>
-        <p class="detail-coverage" title="How many accessibility features have recorded information">${(() => { const c = coverageFor(place); return `Data coverage ${c.pct}% · ${c.known} of ${c.total} features documented`; })()}</p>
+        <p class="detail-coverage" title="How many accessibility features have recorded information">${(() => { const c = coverageFor(place); return `Data coverage ${c.grade} · ${c.pct}% · ${c.known} of ${c.total} features documented`; })()}</p>
       </div>
       <div class="detail-head-actions"><button type="button" class="detail-save" id="detail-save" aria-pressed="${isPlaceSaved(place.id)}">${isPlaceSaved(place.id) ? '\u2605 Saved' : '\u2606 Save place'}</button>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button></div>
