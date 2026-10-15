@@ -4,6 +4,8 @@ Last checked: October 14, 2026.
 
 This prototype intentionally starts from a small number of public sources. It does not claim that the listed sites or routes have been independently audited by the project creator.
 
+Machine-readable source details (publisher, title, URL, license, retrieval date, and notes) live in `data/sources.json`. Each accessibility claim in `data/places.json` references one of those records by `sourceId`. This file is the human-readable companion to that catalog.
+
 ## 1. Louisville Waterfront Park
 
 - Public information source: https://ourwaterfront.org/feature/accessibility/

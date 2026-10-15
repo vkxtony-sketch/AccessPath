@@ -1,0 +1,146 @@
+[
+  {
+    "id": "waterfront-park",
+    "name": "Louisville Waterfront Park",
+    "category": "Park",
+    "address": "129 River Road, Louisville, KY 40202",
+    "lat": 38.2571,
+    "lng": -85.7441,
+    "short": "Waterfront paths and accessible wayfinding",
+    "openStatus": "Open public space",
+    "icon": "⌁",
+    "infoSourceId": "waterfront-contact",
+    "wheelchair": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "park",
+      "detail": "The park says it is wheelchair accessible and that walkways were built to ADA standards. Routes are provided where stairs are present.",
+      "sourceId": "waterfront-accessibility",
+      "lastChecked": "2026-10-14"
+    },
+    "parking": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "park",
+      "detail": "Accessible-parking details for this exact destination have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    },
+    "tactile": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "park",
+      "detail": "The park describes accessible signs with raised letters, Braille, tactile graphics, and textured sidewalk cues.",
+      "sourceId": "waterfront-accessibility",
+      "lastChecked": "2026-10-14"
+    }
+  },
+  {
+    "id": "crescent-hill-library",
+    "name": "Crescent Hill Branch Library",
+    "category": "Library",
+    "address": "2762 Frankfort Avenue, Louisville, KY 40206",
+    "lat": 38.2551,
+    "lng": -85.7005,
+    "short": "Ramp, push-button entry and elevator information",
+    "openStatus": "Library branch",
+    "icon": "▤",
+    "infoSourceId": "lfpl-branches",
+    "wheelchair": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "branch",
+      "detail": "The branch describes wheelchair ramps from its parking lot and Birchwood Avenue, a push-button door, and an interior elevator to the lower level.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
+    "parking": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "branch",
+      "detail": "The branch lists two accessible parking spaces next to the ramp.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
+    "tactile": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "branch",
+      "detail": "Tactile or Braille wayfinding details for this branch have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    }
+  },
+  {
+    "id": "bon-air-library",
+    "name": "Bon Air Branch Library",
+    "category": "Library",
+    "address": "2816 Del Rio Place, Louisville, KY 40220",
+    "lat": 38.2317,
+    "lng": -85.6196,
+    "short": "Library accessibility information published by LFPL",
+    "openStatus": "Library branch",
+    "icon": "▤",
+    "infoSourceId": "lfpl-branches",
+    "wheelchair": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "system",
+      "detail": "Louisville Free Public Library states that all of its library locations are wheelchair accessible.",
+      "sourceId": "lfpl-accessibility",
+      "lastChecked": "2026-10-14"
+    },
+    "parking": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "system",
+      "detail": "Louisville Free Public Library states that all library locations offer parking for vehicles displaying a disability parking permit. Branch-specific details should be confirmed directly.",
+      "sourceId": "lfpl-accessibility",
+      "lastChecked": "2026-10-14"
+    },
+    "tactile": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "branch",
+      "detail": "Tactile or Braille wayfinding details for this branch have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    }
+  },
+  {
+    "id": "library-computer-center",
+    "name": "Library Computer Center",
+    "category": "Library / computer access",
+    "address": "721 South Brook Street, Louisville, KY 40203",
+    "lat": 38.2438,
+    "lng": -85.7588,
+    "short": "Public library computer center",
+    "openStatus": "Library location",
+    "icon": "▤",
+    "infoSourceId": "lfpl-branches",
+    "wheelchair": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "system",
+      "detail": "Louisville Free Public Library states that all of its library locations are wheelchair accessible. Confirm this center's current entrance and service arrangements directly.",
+      "sourceId": "lfpl-accessibility",
+      "lastChecked": "2026-10-14"
+    },
+    "parking": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "system",
+      "detail": "Louisville Free Public Library states that all library locations offer parking for vehicles displaying a disability parking permit. Exact parking arrangements at this center have not been individually checked.",
+      "sourceId": "lfpl-accessibility",
+      "lastChecked": "2026-10-14"
+    },
+    "tactile": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "branch",
+      "detail": "Tactile or Braille wayfinding details for this location have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    }
+  }
+]

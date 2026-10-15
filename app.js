@@ -1,40 +1,22 @@
 'use strict';
 
-/* AccessPath prototype. Place details link to public sources; unknown values are never treated as inaccessible. */
-const places = [
-  {
-    id: 'waterfront-park', name: 'Louisville Waterfront Park', category: 'Park', address: '129 River Road, Louisville, KY 40202', lat: 38.2571, lng: -85.7441,
-    short: 'Waterfront paths and accessible wayfinding',
-    wheelchair: { status: 'verified', detail: 'The park says it is wheelchair accessible and that walkways were built to ADA standards. Routes are provided where stairs are present.' },
-    parking: { status: 'unknown', detail: 'Accessible-parking details for this exact destination have not been verified in this prototype.' },
-    tactile: { status: 'verified', detail: 'The park describes accessible signs with raised letters, Braille, tactile graphics, and textured sidewalk cues.' },
-    openStatus: 'Open public space', sourceLabel: 'Waterfront Park — Accessibility', sourceUrl: 'https://ourwaterfront.org/feature/accessibility/', secondarySource: 'https://ourwaterfront.org/contact/', icon: '⌁'
-  },
-  {
-    id: 'crescent-hill-library', name: 'Crescent Hill Branch Library', category: 'Library', address: '2762 Frankfort Avenue, Louisville, KY 40206', lat: 38.2551, lng: -85.7005,
-    short: 'Ramp, push-button entry and elevator information',
-    wheelchair: { status: 'verified', detail: 'The branch describes wheelchair ramps from its parking lot and Birchwood Avenue, a push-button door, and an interior elevator to the lower level.' },
-    parking: { status: 'verified', detail: 'The branch lists two accessible parking spaces next to the ramp.' },
-    tactile: { status: 'unknown', detail: 'Tactile or Braille wayfinding details for this branch have not been verified in this prototype.' },
-    openStatus: 'Library branch', sourceLabel: 'LFPL — Crescent Hill accessibility', sourceUrl: 'https://www.lfpl.org/crescent-hill-1', secondarySource: 'https://www.lfpl.org/branches', icon: '▤'
-  },
-  {
-    id: 'bon-air-library', name: 'Bon Air Branch Library', category: 'Library', address: '2816 Del Rio Place, Louisville, KY 40220', lat: 38.2317, lng: -85.6196,
-    short: 'Library accessibility information published by LFPL',
-    wheelchair: { status: 'verified', detail: 'Louisville Free Public Library states that all of its library locations are wheelchair accessible.' },
-    parking: { status: 'verified', detail: 'Louisville Free Public Library states that all library locations offer parking for vehicles displaying a disability parking permit. Branch-specific details should be confirmed directly.' },
-    tactile: { status: 'unknown', detail: 'Tactile or Braille wayfinding details for this branch have not been verified in this prototype.' },
-    openStatus: 'Library branch', sourceLabel: 'LFPL — Accessibility services', sourceUrl: 'https://www.lfpl.org/accessibility-services', secondarySource: 'https://www.lfpl.org/branches', icon: '▤'
-  },
-  {
-    id: 'library-computer-center', name: 'Library Computer Center', category: 'Library / computer access', address: '721 South Brook Street, Louisville, KY 40203', lat: 38.2438, lng: -85.7588,
-    short: 'Public library computer center',
-    wheelchair: { status: 'verified', detail: 'Louisville Free Public Library states that all of its library locations are wheelchair accessible. Confirm this center’s current entrance and service arrangements directly.' },
-    parking: { status: 'verified', detail: 'Louisville Free Public Library states that all library locations offer parking for vehicles displaying a disability parking permit. Exact parking arrangements at this center have not been individually checked.' },
-    tactile: { status: 'unknown', detail: 'Tactile or Braille wayfinding details for this location have not been verified in this prototype.' },
-    openStatus: 'Library location', sourceLabel: 'LFPL — Accessibility services', sourceUrl: 'https://www.lfpl.org/accessibility-services', secondarySource: 'https://www.lfpl.org/branches', icon: '▤'
-  }
+/* AccessPath prototype. Locations load from data/places.json and cite data/sources.json; unknown values are never treated as inaccessible. */
+let places = [];
+let sources = {};
+
+const FEATURES = [
+  { key: 'wheelchair', label: 'Wheelchair info' },
+  { key: 'parking', label: 'Accessible parking' },
+  { key: 'tactile', label: 'Tactile / Braille' }
 ];
+
+/* Every accessibility claim carries a value plus evidence. "unknown" is never proof of inaccessibility. */
+const VALUE_META = {
+  yes: { cls: 'verified', symbol: '✓', text: 'documented' },
+  limited: { cls: 'limited', symbol: '!', text: 'limited' },
+  no: { cls: 'no', symbol: '✕', text: 'not available' },
+  unknown: { cls: 'warning', symbol: '?', text: 'not yet verified' }
+};
 
 const STORAGE_KEY = 'accesspath-reports-v1';
 let reports = readReports();
@@ -68,17 +50,28 @@ function saveReports() {
 function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 }
-function statusBadge(status, label) {
-  if (status === 'verified') return `<span class="mini-badge">✓ ${label}</span>`;
-  if (status === 'unknown') return `<span class="mini-badge warning">? Not yet verified</span>`;
-  return `<span class="mini-badge warning">${escapeHTML(label)}</span>`;
+function featureValue(place, key) {
+  const feature = place[key];
+  return feature && typeof feature.value === 'string' ? feature.value : 'unknown';
+}
+function valueBadge(value, label) {
+  const meta = VALUE_META[value] || VALUE_META.unknown;
+  const suffix = value === 'yes' || value === 'unknown' ? label : `${label} — ${meta.text}`;
+  return `<span class="mini-badge ${meta.cls}">${meta.symbol} ${escapeHTML(suffix)}</span>`;
 }
 function getAccessBadges(place) {
-  const badges = [];
-  if (place.wheelchair.status === 'verified') badges.push(statusBadge('verified', 'Wheelchair info'));
-  else badges.push(statusBadge('unknown', 'Wheelchair info'));
-  if (place.tactile.status === 'verified') badges.push(statusBadge('verified', 'Tactile / Braille'));
-  return badges.slice(0, 2).join('');
+  return FEATURES.map(feature => valueBadge(featureValue(place, feature.key), feature.label)).join('');
+}
+function sourceById(id) {
+  return id && sources[id] ? sources[id] : null;
+}
+function placeSources(place) {
+  const ids = [place.infoSourceId, ...FEATURES.map(feature => place[feature.key]?.sourceId)];
+  const seen = new Set();
+  return ids
+    .filter(id => id && !seen.has(id) && seen.add(id))
+    .map(sourceById)
+    .filter(Boolean);
 }
 function currentFilteredPlaces() {
   const query = $('search-input').value.trim().toLowerCase();
@@ -87,9 +80,9 @@ function currentFilteredPlaces() {
   const wantsTactile = $('filter-tactile').checked;
   return places.filter(place => {
     const matchesText = !query || `${place.name} ${place.address} ${place.category} ${place.short}`.toLowerCase().includes(query);
-    const matchesWheelchair = !wantsWheelchair || place.wheelchair.status === 'verified';
-    const matchesParking = !wantsParking || place.parking.status === 'verified';
-    const matchesTactile = !wantsTactile || place.tactile.status === 'verified';
+    const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
+    const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
+    const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
     return matchesText && matchesWheelchair && matchesParking && matchesTactile;
   });
 }
@@ -113,7 +106,7 @@ function renderPlaceList() {
 }
 function updateStats() {
   $('location-count').textContent = String(places.length);
-  $('verified-count').textContent = String(places.filter(p => p.wheelchair.status === 'verified').length);
+  $('verified-count').textContent = String(places.filter(p => featureValue(p, 'wheelchair') === 'yes').length);
   $('report-count').textContent = String(reports.length);
 }
 function makeMarkerIcon(index, type = 'place') {
@@ -136,12 +129,31 @@ function initMap() {
     marker.on('click', () => selectPlace(place.id, false));
     placeMarkers.set(place.id, marker);
   });
+  fitToPlaces();
   map.on('focus', () => { map.scrollWheelZoom.enable(); });
   renderReportMarkers();
 }
+function fitToPlaces() {
+  if (!map) return;
+  const points = places
+    .filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng))
+    .map(place => [place.lat, place.lng]);
+  if (!points.length) return;
+  map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 14 });
+}
 function popupHTML(place) {
-  const access = place.wheelchair.status === 'verified' ? 'Published wheelchair-access information' : 'Wheelchair-access details not yet verified';
-  return `<div class="map-popup"><h4>${escapeHTML(place.name)}</h4><p>${escapeHTML(place.address)}</p><p>${escapeHTML(access)}</p><a href="${escapeHTML(place.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open published source ↗</a></div>`;
+  const wheel = featureValue(place, 'wheelchair');
+  const access = wheel === 'yes'
+    ? 'Published wheelchair-access information'
+    : wheel === 'limited'
+      ? 'Wheelchair access documented with limitations'
+      : wheel === 'no'
+        ? 'Source documents that wheelchair access is unavailable'
+        : 'Wheelchair-access details not yet verified';
+  const links = placeSources(place)
+    .map(source => `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>`)
+    .join(' ');
+  return `<div class="map-popup"><h4>${escapeHTML(place.name)}</h4><p>${escapeHTML(place.address)}</p><p>${escapeHTML(access)}</p>${links ? `<p class="popup-sources">${links}</p>` : ''}</div>`;
 }
 function updateMarkerVisibility(visibleIds) {
   if (!map) return;
@@ -249,4 +261,38 @@ function init() {
   updateStats();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+async function loadData() {
+  const [placesResponse, sourcesResponse] = await Promise.all([
+    fetch('./data/places.json'),
+    fetch('./data/sources.json')
+  ]);
+
+  if (!placesResponse.ok) {
+    throw new Error(`Could not load locations: HTTP ${placesResponse.status}`);
+  }
+
+  const placeData = await placesResponse.json();
+  if (!Array.isArray(placeData)) {
+    throw new Error('places.json must contain an array of locations.');
+  }
+  places = placeData;
+
+  if (sourcesResponse.ok) {
+    const sourceData = await sourcesResponse.json();
+    sources = sourceData && typeof sourceData === 'object' && !Array.isArray(sourceData) ? sourceData : {};
+  } else {
+    console.warn(`AccessPath could not load data/sources.json: HTTP ${sourcesResponse.status}. Source links will be limited.`);
+  }
+
+  init();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadData().catch(error => {
+    console.error(error);
+    const placeList = document.getElementById('place-list');
+    if (placeList) {
+      placeList.textContent = 'Location data could not be loaded. Check data/places.json.';
+    }
+  });
+});

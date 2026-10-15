@@ -5,12 +5,14 @@
 ## What works in this first version
 
 - Interactive OpenStreetMap map with four Louisville public destinations.
+- Location data loads from `data/places.json`; sources load from `data/sources.json`. The app does not require editing `app.js` to add places.
 - Search by location name, address, or type.
 - Filters for wheelchair-access details, accessible-parking details, and tactile/Braille wayfinding.
-- Place records that show the source behind the details and distinguish `verified` information from `unknown` information.
+- Each accessibility claim carries a `value` (`yes`, `limited`, `no`, or `unknown`), supporting `evidence`, a `scope`, a `sourceId`, and a `lastChecked` date. The map popup links to the cited source(s).
 - A report form for potential barriers.
 - Browser-local report storage using `localStorage`; map markers and the report counter update after a report is saved.
 - Responsive layout, keyboard-accessible place cards, reduced-motion support, and form labels.
+- The map fits the extent of the loaded locations when valid coordinates are present.
 
 ## Requirements
 
@@ -43,8 +45,29 @@ You can try opening `index.html` directly, but a local server is the more reliab
 
 - `index.html` — structure, accessibility labels, dialog, and page sections.
 - `styles.css` — visual design and responsive layouts.
-- `app.js` — seed data, map markers, filtering, report form, and local persistence.
+- `app.js` — data loading, map markers, filtering, report form, and local persistence.
+- `data/places.json` — cleaned location records displayed by AccessPath.
+- `data/sources.json` — publishers, titles, URLs, licenses, and retrieval dates for each cited source.
+- `data/raw/` — original downloaded datasets (populated during data import).
+- `scripts/` — planned helpers such as `normalize_data.py` for converting source data into the AccessPath format (added during data import).
 - `SOURCES.md` — public information sources and data limitations.
+
+### Location record format
+
+Each record in `data/places.json` uses this structure for every accessibility feature (`wheelchair`, `parking`, `tactile`):
+
+```json
+{
+  "value": "yes",
+  "evidence": "official_source",
+  "scope": "branch",
+  "detail": "Description of the documented feature.",
+  "sourceId": "source-record-id",
+  "lastChecked": "2026-10-14"
+}
+```
+
+`value` is one of `yes`, `limited`, `no`, or `unknown`. `evidence` is one of `official_source`, `field_checked`, `community_report`, or `unknown`. `sourceId` must match a key in `data/sources.json`. A `scope` of `system` means the claim applies to a whole library system rather than one branch.
 
 ## Important accuracy and privacy boundaries
 

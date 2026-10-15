@@ -1,0 +1,47 @@
+{
+  "waterfront-accessibility": {
+    "publisher": "Waterfront Park",
+    "title": "Waterfront Park — Accessibility",
+    "url": "https://ourwaterfront.org/feature/accessibility/",
+    "retrievedAt": "2026-10-14",
+    "dataUpdatedAt": null,
+    "license": "Not stated — informational page. Content referenced, not redistributed.",
+    "notes": "Describes wheelchair access, ADA-standard walkways, alternate routes where stairs exist, and tactile/Braille signage at the park as a whole. Does not confirm parking-lot specifics, restrooms, or current route conditions."
+  },
+  "waterfront-contact": {
+    "publisher": "Waterfront Park",
+    "title": "Contact — Waterfront Park",
+    "url": "https://ourwaterfront.org/contact/",
+    "retrievedAt": "2026-10-14",
+    "dataUpdatedAt": null,
+    "license": "Not stated — informational page. Content referenced, not redistributed.",
+    "notes": "Used only as the address/contact reference for the park location record."
+  },
+  "lfpl-crescent-hill": {
+    "publisher": "Louisville Free Public Library",
+    "title": "Crescent Hill Branch",
+    "url": "https://www.lfpl.org/crescent-hill-1",
+    "retrievedAt": "2026-10-14",
+    "dataUpdatedAt": null,
+    "license": "Not stated — informational page. Content referenced, not redistributed.",
+    "notes": "Branch-specific page describing wheelchair ramps from the parking lot and Birchwood Avenue, a push-button door, an interior elevator to the lower level, and two accessible parking spaces next to the ramp. Does not confirm current door/elevator service or route dimensions."
+  },
+  "lfpl-accessibility": {
+    "publisher": "Louisville Free Public Library",
+    "title": "Accessibility Services",
+    "url": "https://www.lfpl.org/accessibility-services",
+    "retrievedAt": "2026-10-14",
+    "dataUpdatedAt": null,
+    "license": "Not stated — informational page. Content referenced, not redistributed.",
+    "notes": "System-wide statement that all library locations are wheelchair accessible and offer parking for vehicles displaying a disability parking permit. Branch-specific arrangements must be confirmed directly."
+  },
+  "lfpl-branches": {
+    "publisher": "Louisville Free Public Library",
+    "title": "Branches",
+    "url": "https://www.lfpl.org/branches",
+    "retrievedAt": "2026-10-14",
+    "dataUpdatedAt": null,
+    "license": "Not stated — informational page. Content referenced, not redistributed.",
+    "notes": "Branch directory used as the address reference. Recheck listed branches before publishing."
+  }
+}
