@@ -551,6 +551,11 @@ function openStatusText(place) {
   const checked = place.hours && place.hours.lastChecked ? ` Hours checked ${place.hours.lastChecked}.` : '';
   return `${base}. ${note}${checked}`.replace(/\s+/g, ' ').trim();
 }
+function coverageFor(place) {
+  const total = DETAIL_FEATURES.length;
+  const known = DETAIL_FEATURES.filter(feature => featureValue(place, feature.key) !== 'unknown').length;
+  return { known, total, pct: total ? Math.round((known / total) * 100) : 0 };
+}
 function renderDetailPanel(place) {
   const panel = $('detail-panel');
   if (!panel) return;
@@ -562,6 +567,7 @@ function renderDetailPanel(place) {
         <h2 id="detail-title">${escapeHTML(place.name)}</h2>
         <p class="detail-address">${escapeHTML(place.address)}${distance != null ? ` · ${formatDistance(distance)} away` : ''}</p>
         <p class="detail-hours">${escapeHTML(openStatusText(place))}</p>
+        <p class="detail-coverage" title="How many accessibility features have recorded information">${(() => { const c = coverageFor(place); return `Data coverage ${c.pct}% · ${c.known} of ${c.total} features documented`; })()}</p>
       </div>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
     </div>
