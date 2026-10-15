@@ -86,7 +86,57 @@ function applyPrefs() {
   root.classList.toggle('pref-simple', Boolean(prefs.simple));
   root.lang = prefs.language === 'es' ? 'es' : 'en';
 }
-function applyLanguage() { /* Placeholder; the Spanish-language feature replaces this with live translations. */ }
+const I18N = {
+  en: {
+    'nav.explore': 'Explore',
+    'nav.how': 'How it works',
+    'nav.a11y': 'Accessibility',
+    'nav.report': '+ Report a barrier',
+    'hero.heading': 'The best route is one you can use.',
+    'hero.copy': 'Explore accessibility information for public places, learn what is known before you arrive, and help others by reporting barriers.',
+    'hero.exploreMap': 'Explore the map',
+    'hero.report': 'Report a barrier',
+    'hero.note': 'Missing information means \u201Cnot yet verified\u201D \u2014 not \u201Cinaccessible.\u201D',
+    'filters.title': 'Accessibility information',
+    'filters.reset': 'Reset',
+    'filter.wheelchair': 'Wheelchair access documented',
+    'filter.parking': 'Accessible parking documented',
+    'filter.tactile': 'Tactile or Braille signage',
+    'filter.open': 'Open now (published hours)',
+    'layers.title': 'Map layers',
+    'saved.title': 'Saved searches',
+    'search.placeholder': 'Search places or neighborhoods'
+  },
+  es: {
+    'nav.explore': 'Explorar',
+    'nav.how': 'C\u00F3mo funciona',
+    'nav.a11y': 'Accesibilidad',
+    'nav.report': '+ Reportar una barrera',
+    'hero.heading': 'La mejor ruta es una que puedas usar.',
+    'hero.copy': 'Explora informaci\u00F3n de accesibilidad de lugares p\u00FAblicos, inf\u00F3rmate antes de llegar y ayuda a otras personas reportando barreras.',
+    'hero.exploreMap': 'Explorar el mapa',
+    'hero.report': 'Reportar una barrera',
+    'hero.note': 'La informaci\u00F3n faltante significa \u201Ca\u00FAn no verificada\u201D, no \u201Cinaccesible\u201D.',
+    'filters.title': 'Informaci\u00F3n de accesibilidad',
+    'filters.reset': 'Restablecer',
+    'filter.wheelchair': 'Acceso en silla de ruedas documentado',
+    'filter.parking': 'Estacionamiento accesible documentado',
+    'filter.tactile': 'Se\u00F1alizaci\u00F3n t\u00E1ctil o en Braille',
+    'filter.open': 'Abierto ahora (horario publicado)',
+    'layers.title': 'Capas del mapa',
+    'saved.title': 'B\u00FAsquedas guardadas',
+    'search.placeholder': 'Buscar lugares o vecindarios'
+  }
+};
+function t(key) {
+  const language = prefs.language === 'es' ? 'es' : 'en';
+  return (I18N[language] && I18N[language][key]) || I18N.en[key] || key;
+}
+function applyLanguage() {
+  document.documentElement.lang = prefs.language === 'es' ? 'es' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(element => { element.textContent = t(element.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.getAttribute('data-i18n-placeholder')); });
+}
 function syncPrefControls() {
   if ($('pref-textsize')) $('pref-textsize').value = prefs.textSize || 'default';
   if ($('pref-contrast')) $('pref-contrast').checked = Boolean(prefs.contrast);
@@ -1042,6 +1092,7 @@ function renderLayerToggles() {
 }
 function init() {
   applyPrefs();
+  applyLanguage();
   populateReportPlaces();
   populateReportTypes();
   renderNeighborhoodFilter();

@@ -22,10 +22,10 @@
       <span class="brand-words"><strong>AccessPath</strong><small>Know before you go.</small></span>
     </a>
     <nav class="top-nav" aria-label="Main navigation">
-      <a class="nav-link active" href="#explore">Explore</a>
-      <a class="nav-link" href="#how-it-works">How it works</a>
-      <button class="button button-outline button-small" id="a11y-open" aria-haspopup="dialog">Accessibility</button>
-      <button class="button button-dark button-small" id="header-report">＋ Report a barrier</button>
+      <a class="nav-link active" href="#explore" data-i18n="nav.explore">Explore</a>
+      <a class="nav-link" href="#how-it-works" data-i18n="nav.how">How it works</a>
+      <button class="button button-outline button-small" id="a11y-open" aria-haspopup="dialog" data-i18n="nav.a11y">Accessibility</button>
+      <button class="button button-dark button-small" id="header-report" data-i18n="nav.report">＋ Report a barrier</button>
     </nav>
   </header>
 
@@ -34,12 +34,12 @@
       <div class="hero-copy">
         <div class="eyebrow"><span class="eyebrow-dot"></span> LOUISVILLE, KENTUCKY · EARLY ACCESS</div>
         <h1 id="hero-heading">The best route is<br><em>one you can use.</em></h1>
-        <p>Explore accessibility information for public places, learn what is known before you arrive, and help others by reporting barriers.</p>
+        <p data-i18n="hero.copy">Explore accessibility information for public places, learn what is known before you arrive, and help others by reporting barriers.</p>
         <div class="hero-actions">
-          <a class="button button-dark" href="#explore">Explore the map <span aria-hidden="true">↗</span></a>
-          <button class="button button-outline" id="hero-report">Report a barrier <span aria-hidden="true">＋</span></button>
+          <a class="button button-dark" href="#explore"><span data-i18n="hero.exploreMap">Explore the map</span> <span aria-hidden="true">↗</span></a>
+          <button class="button button-outline" id="hero-report"><span data-i18n="hero.report">Report a barrier</span> <span aria-hidden="true">＋</span></button>
         </div>
-        <div class="hero-note"><span class="note-icon" aria-hidden="true">ⓘ</span> Missing information means “not yet verified” — not “inaccessible.”</div>
+        <div class="hero-note"><span class="note-icon" aria-hidden="true">ⓘ</span> <span data-i18n="hero.note">Missing information means “not yet verified” — not “inaccessible.”</span></div>
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="sun-disc"></div>
@@ -71,16 +71,16 @@
       </div>
       <div class="explorer-layout">
         <aside class="places-panel" aria-label="Search and accessibility filters">
-          <label class="search-box" for="search-input"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search places or neighborhoods" autocomplete="off" list="search-suggestions"><button id="clear-search" class="clear-search" aria-label="Clear search" hidden>×</button></label>
+          <label class="search-box" for="search-input"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search places or neighborhoods" data-i18n-placeholder="search.placeholder" autocomplete="off" list="search-suggestions"><button id="clear-search" class="clear-search" aria-label="Clear search" hidden>×</button></label>
           <datalist id="search-suggestions"></datalist>
-          <div class="filter-title-row"><h3>Accessibility information</h3><button id="reset-filters" class="text-button">Reset</button></div>
+          <div class="filter-title-row"><h3 data-i18n="filters.title">Accessibility information</h3><button id="reset-filters" class="text-button" data-i18n="filters.reset">Reset</button></div>
           <div class="filters" role="group" aria-label="Filter places by documented feature">
-            <label class="filter-option"><input type="checkbox" id="filter-wheelchair"><span class="fake-check" aria-hidden="true"></span><span>Wheelchair access documented</span></label>
-            <label class="filter-option"><input type="checkbox" id="filter-parking"><span class="fake-check" aria-hidden="true"></span><span>Accessible parking documented</span></label>
-            <label class="filter-option"><input type="checkbox" id="filter-tactile"><span class="fake-check" aria-hidden="true"></span><span>Tactile or Braille signage</span></label>
-            <label class="filter-option"><input type="checkbox" id="filter-open"><span class="fake-check" aria-hidden="true"></span><span>Open now (published hours)</span></label>
+            <label class="filter-option"><input type="checkbox" id="filter-wheelchair"><span class="fake-check" aria-hidden="true"></span><span data-i18n="filter.wheelchair">Wheelchair access documented</span></label>
+            <label class="filter-option"><input type="checkbox" id="filter-parking"><span class="fake-check" aria-hidden="true"></span><span data-i18n="filter.parking">Accessible parking documented</span></label>
+            <label class="filter-option"><input type="checkbox" id="filter-tactile"><span class="fake-check" aria-hidden="true"></span><span data-i18n="filter.tactile">Tactile or Braille signage</span></label>
+            <label class="filter-option"><input type="checkbox" id="filter-open"><span class="fake-check" aria-hidden="true"></span><span data-i18n="filter.open">Open now (published hours)</span></label>
           </div>
-          <div class="filter-title-row"><h3>Map layers</h3></div>
+          <div class="filter-title-row"><h3 data-i18n="layers.title">Map layers</h3></div>
           <div class="layers" id="layer-toggles" role="group" aria-label="Toggle location categories"></div>
           <select id="filter-neighborhood" class="full-select" aria-label="Filter by neighborhood">
             <option value="">All neighborhoods</option>
@@ -88,7 +88,7 @@
           <select id="filter-amenity" class="full-select" aria-label="Filter by a documented amenity">
             <option value="">Any amenity</option>
           </select>
-          <div class="filter-title-row"><h3>Saved searches</h3><span><button id="copy-link" class="text-button">Copy link</button> <button id="save-search" class="text-button">Save current</button></span></div>
+          <div class="filter-title-row"><h3 data-i18n="saved.title">Saved searches</h3><span><button id="copy-link" class="text-button">Copy link</button> <button id="save-search" class="text-button">Save current</button></span></div>
           <div id="saved-searches" class="saved-searches"></div>
           <div class="filter-title-row"><h3>Sort &amp; distance</h3><button id="use-my-location" class="text-button">Use my location</button></div>
           <div class="sort-row">
