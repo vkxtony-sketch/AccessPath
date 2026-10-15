@@ -46,6 +46,8 @@ let userLocation = null;
 let userMarker = null;
 let areaFilter = null;
 let reportMarkers = [];
+let reportPin = null;
+let awaitingReportPin = false;
 let selectedPlaceId = null;
 let toastTimer = null;
 
@@ -291,6 +293,14 @@ function initMap() {
   addLocateControl();
   addAreaControl();
   map.on('focus', () => { map.scrollWheelZoom.enable(); });
+  map.on('click', event => {
+    if (!awaitingReportPin) return;
+    awaitingReportPin = false;
+    reportPin = { lat: event.latlng.lat, lng: event.latlng.lng };
+    const status = $('report-pin-status');
+    if (status) status.textContent = `Pin set at ${reportPin.lat.toFixed(5)}, ${reportPin.lng.toFixed(5)}.`;
+    openReportDialog();
+  });
   renderReportMarkers();
 }
 function addLocateControl() {
@@ -473,10 +483,12 @@ function renderReportMarkers() {
   reports.forEach((report, index) => {
     const place = places.find(item => item.id === report.placeId);
     if (!place) return;
-    // Reports are about a venue in this prototype, not an exact obstacle coordinate.
-    // Use a small deterministic offset so multiple report pins do not completely overlap.
+    // Use an exact report pin when the reporter placed one; otherwise a small deterministic
+    // offset from the venue so multiple report pins do not completely overlap.
     const offset = 0.00035 * (index + 1);
-    const marker = L.marker([place.lat + offset, place.lng + offset], { icon: makeReportIcon() }).addTo(map);
+    const lat = Number.isFinite(report.lat) ? report.lat : place.lat + offset;
+    const lng = Number.isFinite(report.lng) ? report.lng : place.lng + offset;
+    const marker = L.marker([lat, lng], { icon: makeReportIcon() }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
     marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${escapeHTML(report.type)}</p><p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
@@ -486,7 +498,7 @@ function populateReportPlaces() {
   $('report-place').innerHTML = places.map(place => `<option value="${escapeHTML(place.id)}">${escapeHTML(place.name)}</option>`).join('');
 }
 function openReportDialog() {
-  if (selectedPlaceId) $('report-place').value = selectedPlaceId;
+  if (selectedPlaceId && $('report-place') && !$('report-place').value) $('report-place').value = selectedPlaceId;
   const dialog = $('report-dialog');
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else showToast('This browser does not support the report dialog. Please update your browser.');
@@ -542,6 +554,11 @@ function bindEvents() {
   ['header-report', 'hero-report'].forEach(id => $(id).addEventListener('click', openReportDialog));
   $('close-dialog').addEventListener('click', closeReportDialog);
   $('cancel-report').addEventListener('click', closeReportDialog);
+  $('report-pick-pin')?.addEventListener('click', () => {
+    awaitingReportPin = true;
+    closeReportDialog();
+    showToast('Tap the map where the barrier is, then finish the report.');
+  });
   $('report-dialog').addEventListener('click', event => { if (event.target === $('report-dialog')) closeReportDialog(); });
   $('report-form').addEventListener('submit', event => {
     event.preventDefault();
@@ -551,8 +568,11 @@ function bindEvents() {
     const status = document.querySelector('input[name="report-status"]:checked')?.value || 'unconfirmed';
     if (!placeId || !type) { showToast('Choose a location and barrier type first.'); return; }
     const report = { id: `r-${Date.now()}`, placeId, type, notes, status, createdAt: new Date().toISOString() };
+    if (reportPin) { report.lat = reportPin.lat; report.lng = reportPin.lng; }
     reports.unshift(report);
     if (!saveReports()) { reports.shift(); return; }
+    reportPin = null;
+    if ($('report-pin-status')) $('report-pin-status').textContent = 'Using the location\u2019s general map point.';
     renderReportMarkers();
     updateStats();
     $('report-form').reset();
