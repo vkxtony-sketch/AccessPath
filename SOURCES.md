@@ -41,7 +41,9 @@ Machine-readable source details (publisher, title, URL, license, retrieval date,
 ## Map
 
 - Library: Leaflet 1.9.4, loaded from unpkg CDN, https://leafletjs.com/
-- Base tiles: OpenStreetMap, https://www.openstreetmap.org/copyright
+- Marker clustering: Leaflet.markercluster 1.5.3, loaded from unpkg CDN, https://github.com/Leaflet/Leaflet.markercluster
+- Standard tiles: OpenStreetMap, https://www.openstreetmap.org/copyright
+- Satellite tiles: Esri World Imagery, https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer
 - Seed coordinates are approximate and should be checked against on-site entrances before real public use.
 
 ## City data source for a future version
