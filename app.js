@@ -19,6 +19,7 @@ const VALUE_META = {
 };
 
 const STORAGE_KEY = 'accesspath-reports-v1';
+const categoryEnabled = {};
 let reports = readReports();
 let map = null;
 let placeLayer = null;
@@ -81,10 +82,11 @@ function currentFilteredPlaces() {
   const wantsTactile = $('filter-tactile').checked;
   return places.filter(place => {
     const matchesText = !query || `${place.name} ${place.address} ${place.category} ${place.short}`.toLowerCase().includes(query);
+    const matchesCategory = categoryEnabled[place.category] !== false;
     const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
     const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
     const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
-    return matchesText && matchesWheelchair && matchesParking && matchesTactile;
+    return matchesText && matchesCategory && matchesWheelchair && matchesParking && matchesTactile;
   });
 }
 function renderPlaceList() {
@@ -272,8 +274,30 @@ function bindEvents() {
 }
 
 function addSourceLink(text, url) { return `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(text)} ↗</a>`; }
+function categoriesInData() {
+  const seen = [];
+  places.forEach(place => {
+    if (place.category && !seen.includes(place.category)) seen.push(place.category);
+  });
+  return seen.sort((a, b) => a.localeCompare(b));
+}
+function renderLayerToggles() {
+  const box = $('layer-toggles');
+  if (!box) return;
+  box.innerHTML = categoriesInData().map(category => {
+    const checked = categoryEnabled[category] !== false;
+    return `<label><input type="checkbox" data-category="${escapeHTML(category)}"${checked ? ' checked' : ''}><span>${escapeHTML(category)}</span></label>`;
+  }).join('');
+  box.querySelectorAll('input[data-category]').forEach(input => {
+    input.addEventListener('change', () => {
+      categoryEnabled[input.dataset.category] = input.checked;
+      renderPlaceList();
+    });
+  });
+}
 function init() {
   populateReportPlaces();
+  renderLayerToggles();
   bindEvents();
   initMap();
   renderPlaceList();
