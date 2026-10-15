@@ -12,6 +12,14 @@
     "hours": { "schedule": [], "alwaysOpen": true, "note": "Open public space with no set closing time.", "sourceId": "waterfront-contact", "lastChecked": "2026-10-14" },
     "icon": "⌁",
     "infoSourceId": "waterfront-contact",
+    "restroom": {
+      "value": "unknown",
+      "evidence": "unknown",
+      "scope": "park",
+      "detail": "Public restrooms are present at the park, but accessible restroom details have not been verified in this prototype.",
+      "sourceId": null,
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
