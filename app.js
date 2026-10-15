@@ -26,6 +26,7 @@ let placeLayer = null;
 let placeMarkers = new Map();
 let userLocation = null;
 let userMarker = null;
+let areaFilter = null;
 let reportMarkers = [];
 let selectedPlaceId = null;
 let toastTimer = null;
@@ -85,10 +86,11 @@ function currentFilteredPlaces() {
   return places.filter(place => {
     const matchesText = !query || `${place.name} ${place.address} ${place.category} ${place.short}`.toLowerCase().includes(query);
     const matchesCategory = categoryEnabled[place.category] !== false;
+    const matchesArea = !areaFilter || areaFilter.contains([place.lat, place.lng]);
     const matchesWheelchair = !wantsWheelchair || featureValue(place, 'wheelchair') === 'yes';
     const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
     const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
-    return matchesText && matchesCategory && matchesWheelchair && matchesParking && matchesTactile;
+    return matchesText && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile;
   });
 }
 function renderPlaceList() {
@@ -167,6 +169,7 @@ function initMap() {
   });
   fitToPlaces();
   addLocateControl();
+  addAreaControl();
   map.on('focus', () => { map.scrollWheelZoom.enable(); });
   renderReportMarkers();
 }
@@ -181,6 +184,33 @@ function addLocateControl() {
     link.setAttribute('aria-label', 'Show my location');
     link.innerHTML = '⌖';
     L.DomEvent.on(link, 'click', event => { L.DomEvent.stop(event); locateUser(); });
+    return container;
+  };
+  control.addTo(map);
+}
+function addAreaControl() {
+  const control = L.control({ position: 'topleft' });
+  control.onAdd = () => {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+    const link = L.DomUtil.create('a', 'area-control', container);
+    link.href = '#';
+    link.title = 'Search the visible map area';
+    link.setAttribute('role', 'button');
+    link.setAttribute('aria-label', 'Search the visible map area');
+    link.innerHTML = '⛶';
+    L.DomEvent.on(link, 'click', event => {
+      L.DomEvent.stop(event);
+      if (areaFilter) {
+        areaFilter = null;
+        L.DomUtil.removeClass(link, 'active');
+        showToast('Showing places everywhere again.');
+      } else {
+        areaFilter = map.getBounds();
+        L.DomUtil.addClass(link, 'active');
+        showToast('Showing only places in the visible map area. Tap again to clear.');
+      }
+      renderPlaceList();
+    });
     return container;
   };
   control.addTo(map);
@@ -298,6 +328,9 @@ function resetFilters() {
   $('filter-wheelchair').checked = false;
   $('filter-parking').checked = false;
   $('filter-tactile').checked = false;
+  areaFilter = null;
+  const areaControl = document.querySelector('.area-control');
+  if (areaControl) L.DomUtil.removeClass(areaControl, 'active');
   renderPlaceList();
 }
 function bindEvents() {
