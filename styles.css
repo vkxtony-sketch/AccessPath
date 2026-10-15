@@ -55,3 +55,6 @@
 .pref-row:last-of-type{border-bottom:0}
 .pref-row>label{font-size:13px;font-weight:600;color:#33463f}
 .pref-row select{min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff}
+html[data-textsize="large"] body{zoom:1.12}
+html[data-textsize="xlarge"] body{zoom:1.25}
+@supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}
