@@ -98,6 +98,12 @@ const DURATION_META = {
   permanent: { label: 'Permanent barrier' }
 };
 function durationMeta(key) { return DURATION_META[key] || null; }
+const REPORT_STATUS_META = {
+  unconfirmed: { label: 'Unconfirmed', cls: 'status-unknown' },
+  observed: { label: 'Observed by reporter', cls: 'status-limited' },
+  resolved: { label: 'Possibly resolved', cls: 'status-yes' }
+};
+function reportStatusMeta(key) { return REPORT_STATUS_META[key] || null; }
 function reportExpired(report) {
   return Boolean(report.expiresOn && report.expiresOn < new Date().toISOString().slice(0, 10));
 }
@@ -506,9 +512,22 @@ function renderDetailPanel(place) {
       </div>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
     </div>
-    <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}</div>`;
+    <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}${renderPlaceReports(place)}</div>`;
   panel.hidden = false;
   $('detail-close').addEventListener('click', closeDetailPanel);
+}
+function renderPlaceReports(place) {
+  const list = reports.filter(report => report.placeId === place.id);
+  const heading = `<h3 class="detail-subhead">Community reports (${list.length})</h3>`;
+  const addButton = `<button type="button" class="button button-outline button-small" data-report-for="${escapeHTML(place.id)}">Add a report</button>`;
+  if (!list.length) return `<section class="reports-block">${heading}<p class="muted">No community reports saved for this location yet.</p>${addButton}</section>`;
+  const items = list.map(report => {
+    const category = barrierCategory(report.type);
+    const meta = reportStatusMeta(report.status) || REPORT_STATUS_META.unconfirmed;
+    const options = Object.entries(REPORT_STATUS_META).map(([key, value]) => `<option value="${key}"${key === report.status ? ' selected' : ''}>${escapeHTML(value.label)}</option>`).join('');
+    return `<li class="report-item"><div><strong>${category.icon} ${escapeHTML(category.label)}</strong><span class="report-status ${meta.cls}">${escapeHTML(meta.label)}</span>${report.notes ? `<p class="report-note">${escapeHTML(report.notes)}</p>` : ''}</div><div class="report-actions"><select data-report-status="${escapeHTML(report.id)}" aria-label="Report status">${options}</select><button type="button" class="report-delete" data-report-delete="${escapeHTML(report.id)}" aria-label="Delete report">Delete</button></div></li>`;
+  }).join('');
+  return `<section class="reports-block">${heading}<ul class="report-list">${items}</ul>${addButton}</section>`;
 }
 function closeDetailPanel() {
   const panel = $('detail-panel');
@@ -660,6 +679,32 @@ function bindEvents() {
   $('place-list').addEventListener('click', event => {
     const anchor = event.target.closest('[data-popup-place]');
     if (anchor) { event.preventDefault(); selectPlace(anchor.dataset.popupPlace, true); }
+  });
+  const detailPanel = $('detail-panel');
+  detailPanel.addEventListener('change', event => {
+    const select = event.target.closest('select[data-report-status]');
+    if (!select) return;
+    const report = reports.find(item => item.id === select.dataset.reportStatus);
+    if (!report) return;
+    report.status = select.value;
+    saveReports();
+    renderReportMarkers();
+    showToast('Report status updated.');
+  });
+  detailPanel.addEventListener('click', event => {
+    const remove = event.target.closest('[data-report-delete]');
+    if (remove) {
+      if (!window.confirm('Delete this report from this device?')) return;
+      reports = reports.filter(item => item.id !== remove.dataset.reportDelete);
+      saveReports();
+      renderReportMarkers();
+      const place = places.find(item => item.id === selectedPlaceId);
+      if (place) renderDetailPanel(place);
+      showToast('Report deleted.');
+      return;
+    }
+    const add = event.target.closest('[data-report-for]');
+    if (add) { $('report-place').value = add.dataset.reportFor; openReportDialog(); }
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && $('report-dialog').open) closeReportDialog();
