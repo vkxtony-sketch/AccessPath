@@ -12,6 +12,15 @@
     "hours": { "schedule": [], "alwaysOpen": true, "note": "Open public space with no set closing time.", "sourceId": "waterfront-contact", "lastChecked": "2026-10-14" },
     "icon": "⌁",
     "infoSourceId": "waterfront-contact",
+    "surface": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "path",
+      "detail": "The park states that walkways were built to ADA standards.",
+      "surfaceType": "Paved walkways",
+      "sourceId": "waterfront-accessibility",
+      "lastChecked": "2026-10-14"
+    },
     "restroom": {
       "value": "unknown",
       "evidence": "unknown",
