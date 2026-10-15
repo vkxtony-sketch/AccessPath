@@ -551,6 +551,9 @@ function renderReportMarkers() {
     reportMarkers.push(marker);
   });
 }
+function findDuplicateReport(placeId, type) {
+  return reports.find(report => report.placeId === placeId && report.type === type) || null;
+}
 function populateReportPlaces() {
   $('report-place').innerHTML = places.map(place => `<option value="${escapeHTML(place.id)}">${escapeHTML(place.name)}</option>`).join('');
 }
@@ -631,6 +634,11 @@ function bindEvents() {
     const duration = $('report-duration') ? $('report-duration').value : '';
     const expiresOn = duration === 'temporary' && $('report-expiry') ? $('report-expiry').value : '';
     if (!placeId || !type) { showToast('Choose a location and barrier type first.'); return; }
+    const duplicate = findDuplicateReport(placeId, type);
+    if (duplicate && !window.confirm('A similar report already exists for this location. Add another one anyway?')) {
+      showToast('Not added. A similar report already exists for this location.');
+      return;
+    }
     const report = { id: `r-${Date.now()}`, placeId, type, severity, duration, expiresOn, notes, status, createdAt: new Date().toISOString() };
     const file = $('report-photo') && $('report-photo').files ? $('report-photo').files[0] : null;
     if (file) {
