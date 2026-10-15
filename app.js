@@ -309,11 +309,50 @@ function updateMarkerVisibility(visibleIds) {
     }
   });
 }
+function statusPill(value) {
+  const meta = VALUE_META[value] || VALUE_META.unknown;
+  return `<span class="mini-badge ${meta.cls}">${meta.symbol} ${escapeHTML(meta.text)}</span>`;
+}
+function featureCard(place, feature) {
+  const data = place[feature.key] || {};
+  const value = typeof data.value === 'string' ? data.value : 'unknown';
+  const source = sourceById(data.sourceId);
+  return `<section class="feature-card">
+    <div class="feature-head"><h3>${escapeHTML(feature.label)}</h3>${statusPill(value)}</div>
+    <p class="feature-detail">${escapeHTML(data.detail || 'No information recorded yet.')}</p>
+    <div class="feature-meta">
+      ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
+      ${data.lastChecked ? `<span class="muted">Checked ${escapeHTML(data.lastChecked)}</span>` : ''}
+    </div>
+  </section>`;
+}
+function renderDetailPanel(place) {
+  const panel = $('detail-panel');
+  if (!panel) return;
+  const distance = placeDistance(place);
+  panel.innerHTML = `
+    <div class="detail-head">
+      <div>
+        <div class="eyebrow">${escapeHTML(place.category)}</div>
+        <h2 id="detail-title">${escapeHTML(place.name)}</h2>
+        <p class="detail-address">${escapeHTML(place.address)}${distance != null ? ` · ${formatDistance(distance)} away` : ''}</p>
+      </div>
+      <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button>
+    </div>
+    <div class="detail-body">${FEATURES.map(feature => featureCard(place, feature)).join('')}</div>`;
+  panel.hidden = false;
+  $('detail-close').addEventListener('click', closeDetailPanel);
+}
+function closeDetailPanel() {
+  const panel = $('detail-panel');
+  if (panel) panel.hidden = true;
+}
 function selectPlace(id, panMap) {
   const place = places.find(item => item.id === id);
   if (!place) return;
   selectedPlaceId = id;
   renderPlaceList();
+  renderDetailPanel(place);
   const marker = placeMarkers.get(id);
   if (map && marker) {
     if (panMap) map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 14), { duration: .45 });
@@ -404,6 +443,7 @@ function bindEvents() {
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && $('report-dialog').open) closeReportDialog();
+    else if (event.key === 'Escape' && $('detail-panel') && !$('detail-panel').hidden) closeDetailPanel();
   });
 }
 
