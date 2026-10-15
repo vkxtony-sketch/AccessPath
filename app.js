@@ -540,6 +540,7 @@ function featureCard(place, feature) {
       <span class="confidence ${confidenceFor(data).cls}" title="How reliable this information is">${escapeHTML(confidenceFor(data).label)}</span>
       ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>${isStale(data.lastChecked) ? ' <span class="stale-badge" title="This information is old and may have changed">May be out of date</span>' : ''}` : ''}
     </div>
+    <button type="button" class="correction-link" data-correction="${escapeHTML(feature.key)}" data-correction-place="${escapeHTML(place.id)}">Suggest a correction</button>
   </section>`;
 }
 function openStatusText(place) {
@@ -627,6 +628,17 @@ function findDuplicateReport(placeId, type) {
 }
 function populateReportPlaces() {
   $('report-place').innerHTML = places.map(place => `<option value="${escapeHTML(place.id)}">${escapeHTML(place.name)}</option>`).join('');
+}
+function openCorrection(placeId, featureKey) {
+  const place = places.find(item => item.id === placeId);
+  const feature = DETAIL_FEATURES.find(item => item.key === featureKey);
+  if ($('report-place')) $('report-place').value = placeId;
+  if ($('report-type')) $('report-type').value = 'other';
+  const notes = $('report-notes');
+  if (notes) notes.value = `Correction to "${feature ? feature.label : featureKey}" for ${place ? place.name : placeId}: `;
+  const dialog = $('report-dialog');
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  if (notes) { notes.focus(); notes.setSelectionRange(notes.value.length, notes.value.length); }
 }
 function openReportDialog() {
   if (selectedPlaceId && $('report-place') && !$('report-place').value) $('report-place').value = selectedPlaceId;
@@ -756,7 +768,9 @@ function bindEvents() {
       return;
     }
     const add = event.target.closest('[data-report-for]');
-    if (add) { $('report-place').value = add.dataset.reportFor; openReportDialog(); }
+    if (add) { $('report-place').value = add.dataset.reportFor; openReportDialog(); return; }
+    const correction = event.target.closest('[data-correction]');
+    if (correction) { openCorrection(correction.dataset.correctionPlace, correction.dataset.correction); }
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && $('report-dialog').open) closeReportDialog();
