@@ -93,6 +93,14 @@ const BARRIER_CATEGORIES = [
   { key: 'signage', label: 'Signage or wayfinding concern', icon: '\u{1F9ED}' },
   { key: 'other', label: 'Other access concern', icon: '\u2753' }
 ];
+const DURATION_META = {
+  temporary: { label: 'Temporary barrier' },
+  permanent: { label: 'Permanent barrier' }
+};
+function durationMeta(key) { return DURATION_META[key] || null; }
+function reportExpired(report) {
+  return Boolean(report.expiresOn && report.expiresOn < new Date().toISOString().slice(0, 10));
+}
 const SEVERITY_META = {
   blocks: { label: 'Blocks my route', cls: 'sev-high' },
   difficult: { label: 'Difficult but passable', cls: 'sev-mid' },
@@ -303,9 +311,9 @@ function makeMarkerIcon(place, index) {
     popupAnchor: [0, -35]
   });
 }
-function makeReportIcon(severity) {
+function makeReportIcon(severity, expired) {
   const variant = severity && SEVERITY_META[severity] ? ` sev-${severity}` : '';
-  return L.divIcon({ className: '', html: `<div class="custom-marker report${variant}"><span>!</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
+  return L.divIcon({ className: '', html: `<div class="custom-marker report${variant}${expired ? ' expired' : ''}"><span>!</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
 }
 function initMap() {
   if (!window.L) {
@@ -534,11 +542,12 @@ function renderReportMarkers() {
     const offset = 0.00035 * (index + 1);
     const lat = Number.isFinite(report.lat) ? report.lat : place.lat + offset;
     const lng = Number.isFinite(report.lng) ? report.lng : place.lng + offset;
-    const marker = L.marker([lat, lng], { icon: makeReportIcon(report.severity) }).addTo(map);
+    const marker = L.marker([lat, lng], { icon: makeReportIcon(report.severity, reportExpired(report)) }).addTo(map);
     const label = report.status === 'observed' ? 'Reported as personally observed' : 'Unconfirmed community report';
     const category = barrierCategory(report.type);
     const severity = severityMeta(report.severity);
-    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${category.icon} ${escapeHTML(category.label)}</p>${severity ? `<p><span class="sev ${severity.cls}">${escapeHTML(severity.label)}</span></p>` : ''}<p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
+    const duration = durationMeta(report.duration);
+    marker.bindPopup(`<div class="map-popup"><h4>Community report</h4><p><b>${escapeHTML(place.name)}</b></p><p>${category.icon} ${escapeHTML(category.label)}</p>${severity ? `<p><span class="sev ${severity.cls}">${escapeHTML(severity.label)}</span></p>` : ''}${duration ? `<p>${escapeHTML(duration.label)}${report.expiresOn ? ` \u00b7 ends ${escapeHTML(report.expiresOn)}` : ''}</p>` : ''}${reportExpired(report) ? '<p><span class="sev sev-low">Possibly resolved</span></p>' : ''}<p>${escapeHTML(label)}</p>${report.notes ? `<p>${escapeHTML(report.notes)}</p>` : ''}${report.photo ? `<img class="report-photo" src="${report.photo}" alt="Photo attached to this community report">` : ''}<p><small>Saved on this device</small></p></div>`);
     reportMarkers.push(marker);
   });
 }
@@ -607,6 +616,10 @@ function bindEvents() {
     closeReportDialog();
     showToast('Tap the map where the barrier is, then finish the report.');
   });
+  $('report-duration')?.addEventListener('change', () => {
+    const field = $('report-expiry-field');
+    if (field) field.hidden = $('report-duration').value !== 'temporary';
+  });
   $('report-dialog').addEventListener('click', event => { if (event.target === $('report-dialog')) closeReportDialog(); });
   $('report-form').addEventListener('submit', async event => {
     event.preventDefault();
@@ -615,8 +628,10 @@ function bindEvents() {
     const notes = $('report-notes').value.trim();
     const status = document.querySelector('input[name="report-status"]:checked')?.value || 'unconfirmed';
     const severity = $('report-severity') ? $('report-severity').value : '';
+    const duration = $('report-duration') ? $('report-duration').value : '';
+    const expiresOn = duration === 'temporary' && $('report-expiry') ? $('report-expiry').value : '';
     if (!placeId || !type) { showToast('Choose a location and barrier type first.'); return; }
-    const report = { id: `r-${Date.now()}`, placeId, type, severity, notes, status, createdAt: new Date().toISOString() };
+    const report = { id: `r-${Date.now()}`, placeId, type, severity, duration, expiresOn, notes, status, createdAt: new Date().toISOString() };
     const file = $('report-photo') && $('report-photo').files ? $('report-photo').files[0] : null;
     if (file) {
       try { report.photo = await downscalePhoto(file); }
