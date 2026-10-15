@@ -331,6 +331,7 @@ function renderPlaceList() {
   }
 
   $('results-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}`;
+  if ($('sr-status')) $('sr-status').textContent = `${filtered.length} ${filtered.length === 1 ? 'location' : 'locations'} match the current search and filters.`;
   $('place-list').innerHTML = filtered.map(place => `
     <button class="place-card ${selectedPlaceId === place.id ? 'selected' : ''}" type="button" data-place-id="${escapeHTML(place.id)}" aria-pressed="${selectedPlaceId === place.id}">
       <span class="place-glyph" aria-hidden="true">${escapeHTML(place.icon)}</span>
@@ -659,6 +660,7 @@ function selectPlace(id, panMap) {
   selectedPlaceId = id;
   renderPlaceList();
   renderDetailPanel(place);
+  if ($('sr-status')) $('sr-status').textContent = `Showing details for ${place.name}.`;
   const marker = placeMarkers.get(id);
   if (map && marker) {
     if (panMap) map.flyTo([place.lat, place.lng], Math.max(map.getZoom(), 14), { duration: .45 });
