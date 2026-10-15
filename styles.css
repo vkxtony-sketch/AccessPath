@@ -72,6 +72,11 @@ html.pref-simple .advanced{display:none!important}
 @media (max-width:760px){.leaflet-touch .leaflet-bar a{width:42px;height:42px;line-height:42px;font-size:20px}}
 .offline-banner{background:#8a6317;color:#fff;text-align:center;font-size:12.5px;font-weight:600;padding:8px 16px}
 .refresh-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+html[data-theme="dark"]{--paper:#0f1714;--white:#16211c;--ink:#e8efea;--muted:#9db0a7;--line:#2a3833;--forest:#7fd0b0;--forest-2:#9fe0c4;--mint:#16241e;--leaf:#1f3a30;--shadow:0 16px 38px rgba(0,0,0,.45)}
+@media (prefers-color-scheme:dark){html[data-theme="auto"]{--paper:#0f1714;--white:#16211c;--ink:#e8efea;--muted:#9db0a7;--line:#2a3833;--forest:#7fd0b0;--forest-2:#9fe0c4;--mint:#16241e;--leaf:#1f3a30;--shadow:0 16px 38px rgba(0,0,0,.45)}}
+html[data-theme="dark"] .topbar,html[data-theme="dark"] .advanced,html[data-theme="dark"] .place-card,html[data-theme="dark"] .feature-card,html[data-theme="dark"] .button-outline{background:#16211c;color:var(--ink)}
+html[data-theme="dark"] .map-expand,html[data-theme="dark"] .detail-save,html[data-theme="dark"] .saved-apply,html[data-theme="dark"] .saved-remove{background:#16211c;color:var(--ink)}
+@media (prefers-color-scheme:dark){html[data-theme="auto"] .topbar,html[data-theme="auto"] .place-card,html[data-theme="auto"] .feature-card,html[data-theme="auto"] .button-outline{background:#16211c;color:var(--ink)}}
 html[data-textsize="large"] body{zoom:1.12}
 html[data-textsize="xlarge"] body{zoom:1.25}
 @supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}

@@ -153,6 +153,7 @@ function applyPrefs() {
   root.classList.toggle('pref-reducemotion', Boolean(prefs.reduceMotion));
   root.classList.toggle('pref-plain', Boolean(prefs.plainLanguage));
   root.classList.toggle('pref-lowband', Boolean(prefs.lowBandwidth));
+  root.dataset.theme = prefs.theme || 'auto';
   root.classList.toggle('pref-simple', Boolean(prefs.simple));
   root.lang = prefs.language === 'es' ? 'es' : 'en';
 }
@@ -217,6 +218,7 @@ function syncPrefControls() {
   if ($('pref-lowband')) $('pref-lowband').checked = Boolean(prefs.lowBandwidth);
   if ($('pref-simple')) $('pref-simple').checked = Boolean(prefs.simple);
   if ($('pref-language')) $('pref-language').value = prefs.language || 'en';
+  if ($('pref-theme')) $('pref-theme').value = prefs.theme || 'auto';
 }
 function setPref(key, value) {
   prefs[key] = value;
@@ -1102,6 +1104,7 @@ function bindEvents() {
   $('pref-lowband')?.addEventListener('change', () => { setPref('lowBandwidth', $('pref-lowband').checked); showToast('Low-bandwidth mode applies after you refresh the page.'); });
   $('pref-simple')?.addEventListener('change', () => setPref('simple', $('pref-simple').checked));
   $('pref-language')?.addEventListener('change', () => { setPref('language', $('pref-language').value); applyLanguage(); });
+  $('pref-theme')?.addEventListener('change', () => setPref('theme', $('pref-theme').value));
   $('a11y-dialog')?.addEventListener('click', event => { if (event.target === $('a11y-dialog')) closePrefs(); });
   $('saved-places')?.addEventListener('click', event => {
     const open = event.target.closest('[data-saved-open]');
