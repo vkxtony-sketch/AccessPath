@@ -19,8 +19,10 @@ const VALUE_META = {
 };
 
 const STORAGE_KEY = 'accesspath-reports-v1';
+const SEARCH_KEY = 'accesspath-searches-v1';
 const categoryEnabled = {};
 let reports = readReports();
+let savedSearches = readSavedSearches();
 let map = null;
 let placeLayer = null;
 let placeMarkers = new Map();
@@ -463,6 +465,7 @@ function bindEvents() {
   $('nearby-radius')?.addEventListener('change', renderPlaceList);
   $('filter-neighborhood')?.addEventListener('change', renderPlaceList);
   $('use-my-location')?.addEventListener('click', locateUser);
+  $('save-search')?.addEventListener('click', saveCurrentSearch);
   $('reset-filters').addEventListener('click', resetFilters);
   ['header-report', 'hero-report'].forEach(id => $(id).addEventListener('click', openReportDialog));
   $('close-dialog').addEventListener('click', closeReportDialog);
@@ -495,6 +498,86 @@ function bindEvents() {
   });
 }
 
+function readSavedSearches() {
+  try {
+    const value = JSON.parse(localStorage.getItem(SEARCH_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (error) {
+    console.warn('AccessPath could not read saved searches:', error);
+    return [];
+  }
+}
+function writeSavedSearches() {
+  try {
+    localStorage.setItem(SEARCH_KEY, JSON.stringify(savedSearches));
+    return true;
+  } catch (error) {
+    console.error('AccessPath could not save searches:', error);
+    return false;
+  }
+}
+function captureSearchState() {
+  return {
+    id: `s-${Date.now()}`,
+    label: $('search-input').value.trim() || 'All places',
+    query: $('search-input').value,
+    wheelchair: $('filter-wheelchair').checked,
+    parking: $('filter-parking').checked,
+    tactile: $('filter-tactile').checked,
+    neighborhood: $('filter-neighborhood') ? $('filter-neighborhood').value : '',
+    categories: { ...categoryEnabled },
+    sort: $('sort-select') ? $('sort-select').value : 'default',
+    radius: $('nearby-radius') ? $('nearby-radius').value : '0'
+  };
+}
+function applySearchState(state) {
+  $('search-input').value = state.query || '';
+  $('filter-wheelchair').checked = !!state.wheelchair;
+  $('filter-parking').checked = !!state.parking;
+  $('filter-tactile').checked = !!state.tactile;
+  if ($('filter-neighborhood')) $('filter-neighborhood').value = state.neighborhood || '';
+  Object.keys(categoryEnabled).forEach(key => delete categoryEnabled[key]);
+  Object.assign(categoryEnabled, state.categories || {});
+  if ($('sort-select')) $('sort-select').value = state.sort || 'default';
+  if ($('nearby-radius')) $('nearby-radius').value = state.radius || '0';
+  renderLayerToggles();
+  updateSearchSuggestions();
+  renderPlaceList();
+}
+function renderSavedSearches() {
+  const box = $('saved-searches');
+  if (!box) return;
+  if (!savedSearches.length) {
+    box.innerHTML = '<p class="muted saved-empty">No saved searches yet.</p>';
+    return;
+  }
+  box.innerHTML = savedSearches.map(item => `
+    <span class="saved-chip">
+      <button type="button" class="saved-apply" data-apply="${escapeHTML(item.id)}">${escapeHTML(item.label)}</button>
+      <button type="button" class="saved-remove" data-remove="${escapeHTML(item.id)}" aria-label="Remove saved search">×</button>
+    </span>`).join('');
+  box.querySelectorAll('[data-apply]').forEach(button => {
+    button.addEventListener('click', () => {
+      const state = savedSearches.find(item => item.id === button.dataset.apply);
+      if (state) { applySearchState(state); showToast(`Applied saved search: ${state.label}`); }
+    });
+  });
+  box.querySelectorAll('[data-remove]').forEach(button => {
+    button.addEventListener('click', () => {
+      savedSearches = savedSearches.filter(item => item.id !== button.dataset.remove);
+      writeSavedSearches();
+      renderSavedSearches();
+    });
+  });
+}
+function saveCurrentSearch() {
+  const state = captureSearchState();
+  savedSearches = [state, ...savedSearches.filter(item => item.label !== state.label)].slice(0, 12);
+  if (writeSavedSearches()) {
+    renderSavedSearches();
+    showToast(`Saved search: ${state.label}`);
+  }
+}
 function addSourceLink(text, url) { return `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(text)} ↗</a>`; }
 function categoriesInData() {
   const seen = [];
@@ -521,6 +604,7 @@ function init() {
   populateReportPlaces();
   renderLayerToggles();
   renderNeighborhoodFilter();
+  renderSavedSearches();
   bindEvents();
   initMap();
   renderPlaceList();
