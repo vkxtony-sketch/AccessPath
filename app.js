@@ -871,6 +871,48 @@ function renderDetailPanel(place) {
   $('detail-save').addEventListener('click', () => toggleSavedPlace(place.id));
   panel.focus();
 }
+function downloadFile(name, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+function exportGeoJSON() {
+  const featureCollection = {
+    type: 'FeatureCollection',
+    features: places.map(place => ({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [place.lng, place.lat] },
+      properties: {
+        id: place.id,
+        name: place.name,
+        category: place.category,
+        address: place.address,
+        neighborhood: place.neighborhood || null,
+        coveragePercent: coverageFor(place).pct,
+        coverageGrade: coverageFor(place).grade
+      }
+    }))
+  };
+  downloadFile('accesspath-locations.geojson', JSON.stringify(featureCollection, null, 2), 'application/geo+json');
+  showToast('Location data exported as GeoJSON.');
+}
+function exportReportsCSV() {
+  if (!reports.length) { showToast('There are no reports on this device to export.'); return; }
+  const columns = ['id', 'placeId', 'placeName', 'type', 'severity', 'duration', 'expiresOn', 'status', 'notes', 'lat', 'lng', 'createdAt'];
+  const escapeCell = value => `"${String(value == null ? '' : value).replace(/"/g, '""')}"`;
+  const rows = reports.map(report => {
+    const place = places.find(item => item.id === report.placeId);
+    return columns.map(column => escapeCell(column === 'placeName' ? (place ? place.name : '') : report[column])).join(',');
+  });
+  downloadFile('accesspath-reports.csv', `${columns.join(',')}\n${rows.join('\n')}`, 'text/csv');
+  showToast('Your reports were exported as CSV.');
+}
 function renderGaps(place) {
   const missing = DETAIL_FEATURES.filter(feature => featureValue(place, feature.key) === 'unknown');
   if (!missing.length) return '';
@@ -1162,6 +1204,8 @@ function bindEvents() {
   $('map-expand')?.addEventListener('click', toggleMapExpand);
   $('refresh-data')?.addEventListener('click', refreshData);
   $('toggle-coverage')?.addEventListener('change', () => toggleCoverageHeatmap($('toggle-coverage').checked));
+  $('export-geojson')?.addEventListener('click', exportGeoJSON);
+  $('export-reports')?.addEventListener('click', exportReportsCSV);
 }
 
 function readSavedSearches() {
