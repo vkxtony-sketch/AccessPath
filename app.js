@@ -491,6 +491,11 @@ function daysSince(dateString) {
   if (Number.isNaN(then.getTime())) return null;
   return Math.floor((Date.now() - then.getTime()) / 86400000);
 }
+const STALE_DAYS = 365;
+function isStale(dateString) {
+  const days = daysSince(dateString);
+  return days != null && days > STALE_DAYS;
+}
 function freshnessText(dateString) {
   const days = daysSince(dateString);
   if (days == null) return '';
@@ -533,7 +538,7 @@ function featureCard(place, feature) {
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
       <span class="evidence" title="Where this information comes from">${evidenceMeta(data.evidence).symbol} ${escapeHTML(evidenceMeta(data.evidence).label)}</span>
       <span class="confidence ${confidenceFor(data).cls}" title="How reliable this information is">${escapeHTML(confidenceFor(data).label)}</span>
-      ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>` : ''}
+      ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>${isStale(data.lastChecked) ? ' <span class="stale-badge" title="This information is old and may have changed">May be out of date</span>' : ''}` : ''}
     </div>
   </section>`;
 }
