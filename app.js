@@ -53,6 +53,7 @@ let userLocation = null;
 let userMarker = null;
 let areaFilter = null;
 let reportMarkers = [];
+let coverageLayer = null;
 let reportPin = null;
 let awaitingReportPin = false;
 let selectedPlaceId = null;
@@ -501,6 +502,27 @@ function makeMarkerIcon(place, index) {
 function makeReportIcon(severity, expired) {
   const variant = severity && SEVERITY_META[severity] ? ` sev-${severity}` : '';
   return L.divIcon({ className: '', html: `<div class="custom-marker report${variant}${expired ? ' expired' : ''}"><span>!</span></div>`, iconSize: [33, 40], iconAnchor: [16, 38], popupAnchor: [0, -35] });
+}
+function buildCoverageLayer() {
+  const layer = L.layerGroup();
+  places.forEach(place => {
+    const pct = coverageFor(place).pct;
+    const color = pct >= 70 ? '#3f7d4f' : pct >= 40 ? '#c68632' : '#b23a2a';
+    L.circleMarker([place.lat, place.lng], { radius: 16, color, weight: 2, fillColor: color, fillOpacity: 0.32 })
+      .bindPopup(`<div class="map-popup"><h4>Data coverage</h4><p><b>${escapeHTML(place.name)}</b></p><p>${pct}% of accessibility features documented</p></div>`)
+      .addTo(layer);
+  });
+  return layer;
+}
+function toggleCoverageHeatmap(on) {
+  if (!map) return;
+  if (on) {
+    coverageLayer = buildCoverageLayer();
+    coverageLayer.addTo(map);
+  } else if (coverageLayer) {
+    map.removeLayer(coverageLayer);
+    coverageLayer = null;
+  }
 }
 function toggleMapExpand() {
   const wrap = document.querySelector('.map-wrap');
@@ -1118,6 +1140,7 @@ function bindEvents() {
   });
   $('map-expand')?.addEventListener('click', toggleMapExpand);
   $('refresh-data')?.addEventListener('click', refreshData);
+  $('toggle-coverage')?.addEventListener('change', () => toggleCoverageHeatmap($('toggle-coverage').checked));
 }
 
 function readSavedSearches() {
