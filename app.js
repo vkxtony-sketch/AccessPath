@@ -93,13 +93,49 @@ function currentFilteredPlaces() {
     return matchesText && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile;
   });
 }
+function distanceMiles(lat1, lng1, lat2, lng2) {
+  const toRad = value => value * Math.PI / 180;
+  const earthRadiusMiles = 3958.8;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function placeDistance(place) {
+  if (!userLocation || !Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return null;
+  return distanceMiles(userLocation.lat, userLocation.lng, place.lat, place.lng);
+}
+function formatDistance(miles) {
+  if (miles == null) return '';
+  return miles < 0.1 ? `${Math.round(miles * 5280)} ft` : `${miles.toFixed(1)} mi`;
+}
 function renderPlaceList() {
-  const filtered = currentFilteredPlaces();
+  let filtered = currentFilteredPlaces();
+
+  const radius = Number($('nearby-radius')?.value) || 0;
+  if (radius > 0) {
+    if (!userLocation) {
+      showToast('Turn on location first to filter by distance.');
+    } else {
+      filtered = filtered.filter(place => {
+        const miles = placeDistance(place);
+        return miles != null && miles <= radius;
+      });
+    }
+  }
+
+  const sort = $('sort-select')?.value || 'default';
+  if (sort === 'distance' && userLocation) {
+    filtered = filtered.slice().sort((a, b) => (placeDistance(a) ?? Infinity) - (placeDistance(b) ?? Infinity));
+  } else if (sort === 'name') {
+    filtered = filtered.slice().sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   $('results-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'}`;
   $('place-list').innerHTML = filtered.map(place => `
     <button class="place-card ${selectedPlaceId === place.id ? 'selected' : ''}" type="button" data-place-id="${escapeHTML(place.id)}" aria-pressed="${selectedPlaceId === place.id}">
       <span class="place-glyph" aria-hidden="true">${escapeHTML(place.icon)}</span>
-      <span class="place-main"><strong>${escapeHTML(place.name)}</strong><span class="place-address">${escapeHTML(place.address)}</span><span class="place-badges">${getAccessBadges(place)}</span></span>
+      <span class="place-main"><strong>${escapeHTML(place.name)}</strong><span class="place-address">${escapeHTML(place.address)}</span><span class="place-badges">${getAccessBadges(place)}${userLocation ? `<span class="mini-badge distance">${formatDistance(placeDistance(place))}</span>` : ''}</span></span>
       <span class="place-arrow" aria-hidden="true">↗</span>
     </button>`).join('');
   $('no-results').hidden = filtered.length !== 0;
@@ -337,6 +373,9 @@ function bindEvents() {
   $('search-input').addEventListener('input', renderPlaceList);
   $('clear-search').addEventListener('click', () => { $('search-input').value = ''; $('search-input').focus(); renderPlaceList(); });
   ['filter-wheelchair', 'filter-parking', 'filter-tactile'].forEach(id => $(id).addEventListener('change', renderPlaceList));
+  $('sort-select')?.addEventListener('change', renderPlaceList);
+  $('nearby-radius')?.addEventListener('change', renderPlaceList);
+  $('use-my-location')?.addEventListener('click', locateUser);
   $('reset-filters').addEventListener('click', resetFilters);
   ['header-report', 'hero-report'].forEach(id => $(id).addEventListener('click', openReportDialog));
   $('close-dialog').addEventListener('click', closeReportDialog);

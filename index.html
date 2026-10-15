@@ -79,6 +79,25 @@
           </div>
           <div class="filter-title-row"><h3>Map layers</h3></div>
           <div class="layers" id="layer-toggles" role="group" aria-label="Toggle location categories"></div>
+          <div class="filter-title-row"><h3>Sort &amp; distance</h3><button id="use-my-location" class="text-button">Use my location</button></div>
+          <div class="sort-row">
+            <label for="sort-select">Sort
+              <select id="sort-select">
+                <option value="default">Default order</option>
+                <option value="distance">Nearest first</option>
+                <option value="name">Name (A–Z)</option>
+              </select>
+            </label>
+            <label for="nearby-radius">Within
+              <select id="nearby-radius">
+                <option value="0">Any distance</option>
+                <option value="1">1 mile</option>
+                <option value="2">2 miles</option>
+                <option value="5">5 miles</option>
+                <option value="10">10 miles</option>
+              </select>
+            </label>
+          </div>
           <div class="results-line"><span id="results-count">4 places</span><span>Louisville, KY</span></div>
           <div id="place-list" class="place-list" aria-live="polite"></div>
           <div id="no-results" class="no-results" hidden><span>⌕</span><strong>No matching places</strong><p>Try another search or reset the filters.</p></div>
