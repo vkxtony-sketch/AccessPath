@@ -77,6 +77,9 @@ html[data-theme="dark"]{--paper:#0f1714;--white:#16211c;--ink:#e8efea;--muted:#9
 html[data-theme="dark"] .topbar,html[data-theme="dark"] .advanced,html[data-theme="dark"] .place-card,html[data-theme="dark"] .feature-card,html[data-theme="dark"] .button-outline{background:#16211c;color:var(--ink)}
 html[data-theme="dark"] .map-expand,html[data-theme="dark"] .detail-save,html[data-theme="dark"] .saved-apply,html[data-theme="dark"] .saved-remove{background:#16211c;color:var(--ink)}
 @media (prefers-color-scheme:dark){html[data-theme="auto"] .topbar,html[data-theme="auto"] .place-card,html[data-theme="auto"] .feature-card,html[data-theme="auto"] .button-outline{background:#16211c;color:var(--ink)}}
+.gaps-block{margin-top:12px}
+.gap-list{list-style:disc;margin:6px 0 0;padding-left:20px;columns:2;column-gap:16px;font-size:12px;color:#40504a}
+@media (max-width:520px){.gap-list{columns:1}}
 html[data-textsize="large"] body{zoom:1.12}
 html[data-textsize="xlarge"] body{zoom:1.25}
 @supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}

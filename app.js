@@ -849,11 +849,16 @@ function renderDetailPanel(place) {
       <div class="detail-head-actions"><button type="button" class="detail-save" id="detail-save" aria-pressed="${isPlaceSaved(place.id)}">${isPlaceSaved(place.id) ? '\u2605 Saved' : '\u2606 Save place'}</button>
       <button type="button" class="dialog-close" id="detail-close" aria-label="Close location details">×</button></div>
     </div>
-    <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}${renderPlaceReports(place)}</div>`;
+    <div class="detail-body">${DETAIL_FEATURES.map(feature => featureCard(place, feature)).join('')}${renderGaps(place)}${renderPlaceReports(place)}</div>`;
   panel.hidden = false;
   $('detail-close').addEventListener('click', closeDetailPanel);
   $('detail-save').addEventListener('click', () => toggleSavedPlace(place.id));
   panel.focus();
+}
+function renderGaps(place) {
+  const missing = DETAIL_FEATURES.filter(feature => featureValue(place, feature.key) === 'unknown');
+  if (!missing.length) return '';
+  return `<section class="gaps-block"><h3 class="detail-subhead">Known information gaps (${missing.length})</h3><p class="muted">These details are not yet verified. Unknown does not mean inaccessible.</p><ul class="gap-list">${missing.map(feature => `<li>${escapeHTML(feature.label)}</li>`).join('')}</ul></section>`;
 }
 function renderPlaceReports(place) {
   const list = reports.filter(report => report.placeId === place.id);
