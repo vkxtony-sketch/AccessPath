@@ -82,6 +82,14 @@
       "sourceId": "lfpl-crescent-hill",
       "lastChecked": "2026-10-14"
     },
+    "ramp": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "entrance",
+      "detail": "Ramps are documented from the parking lot and from Birchwood Avenue.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
