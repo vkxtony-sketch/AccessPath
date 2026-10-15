@@ -467,6 +467,20 @@ function statusPill(value) {
   const meta = VALUE_META[value] || VALUE_META.unknown;
   return `<span class="mini-badge ${meta.cls}">${meta.symbol} ${escapeHTML(meta.text)}</span>`;
 }
+function daysSince(dateString) {
+  const then = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(then.getTime())) return null;
+  return Math.floor((Date.now() - then.getTime()) / 86400000);
+}
+function freshnessText(dateString) {
+  const days = daysSince(dateString);
+  if (days == null) return '';
+  if (days <= 0) return 'Checked today';
+  if (days === 1) return 'Checked yesterday';
+  if (days < 30) return `Checked ${days} days ago`;
+  if (days < 365) return `Checked about ${Math.round(days / 30)} months ago`;
+  return `Checked about ${Math.round(days / 365)} years ago`;
+}
 function featureExtras(data) {
   const parts = [];
   if (data.spaces != null) parts.push(`${data.spaces} documented space${data.spaces === 1 ? '' : 's'}`);
@@ -486,7 +500,7 @@ function featureCard(place, feature) {
     ${featureExtras(data)}
     <div class="feature-meta">
       ${source ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.title)} ↗</a>` : '<span class="muted">No source recorded</span>'}
-      ${data.lastChecked ? `<span class="muted">Checked ${escapeHTML(data.lastChecked)}</span>` : ''}
+      ${data.lastChecked ? `<span class="muted" title="Last checked ${escapeHTML(data.lastChecked)}">${escapeHTML(freshnessText(data.lastChecked))}</span>` : ''}
     </div>
   </section>`;
 }
