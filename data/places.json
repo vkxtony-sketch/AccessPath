@@ -66,6 +66,14 @@
       "sourceId": "lfpl-crescent-hill",
       "lastChecked": "2026-10-14"
     },
+    "elevator": {
+      "value": "yes",
+      "evidence": "official_source",
+      "scope": "branch",
+      "detail": "The branch describes an interior elevator serving the lower level.",
+      "sourceId": "lfpl-crescent-hill",
+      "lastChecked": "2026-10-14"
+    },
     "wheelchair": {
       "value": "yes",
       "evidence": "official_source",
