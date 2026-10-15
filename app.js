@@ -36,9 +36,11 @@ const VALUE_META = {
 
 const STORAGE_KEY = 'accesspath-reports-v1';
 const SEARCH_KEY = 'accesspath-searches-v1';
+const PREF_KEY = 'accesspath-prefs-v1';
 const categoryEnabled = {};
 let reports = readReports();
 let savedSearches = readSavedSearches();
+let prefs = readPrefs();
 let map = null;
 let placeLayer = null;
 let placeMarkers = new Map();
@@ -53,6 +55,58 @@ let toastTimer = null;
 
 const $ = (id) => document.getElementById(id);
 
+function readPrefs() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  } catch (error) {
+    console.warn('AccessPath could not read preferences:', error);
+    return {};
+  }
+}
+function writePrefs() {
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+    return true;
+  } catch (error) {
+    console.error('AccessPath could not save preferences:', error);
+    showToast('This browser could not save preferences. Check browser storage settings.');
+    return false;
+  }
+}
+function applyPrefs() {
+  const root = document.documentElement;
+  root.dataset.textsize = prefs.textSize || 'default';
+  root.classList.toggle('pref-contrast', Boolean(prefs.contrast));
+  root.classList.toggle('pref-colorindependent', Boolean(prefs.colorIndependent));
+  root.classList.toggle('pref-serif', Boolean(prefs.serif));
+  root.classList.toggle('pref-reducemotion', Boolean(prefs.reduceMotion));
+  root.classList.toggle('pref-simple', Boolean(prefs.simple));
+  root.lang = prefs.language === 'es' ? 'es' : 'en';
+}
+function applyLanguage() { /* Placeholder; the Spanish-language feature replaces this with live translations. */ }
+function syncPrefControls() {
+  if ($('pref-textsize')) $('pref-textsize').value = prefs.textSize || 'default';
+  if ($('pref-contrast')) $('pref-contrast').checked = Boolean(prefs.contrast);
+  if ($('pref-cindependent')) $('pref-cindependent').checked = Boolean(prefs.colorIndependent);
+  if ($('pref-serif')) $('pref-serif').checked = Boolean(prefs.serif);
+  if ($('pref-reducemotion')) $('pref-reducemotion').checked = Boolean(prefs.reduceMotion);
+  if ($('pref-simple')) $('pref-simple').checked = Boolean(prefs.simple);
+  if ($('pref-language')) $('pref-language').value = prefs.language || 'en';
+}
+function setPref(key, value) {
+  prefs[key] = value;
+  if (writePrefs()) applyPrefs();
+}
+function openPrefs() {
+  syncPrefControls();
+  const dialog = $('a11y-dialog');
+  if (dialog && typeof dialog.showModal === 'function') dialog.showModal();
+}
+function closePrefs() {
+  const dialog = $('a11y-dialog');
+  if (dialog && dialog.open) dialog.close();
+}
 function readReports() {
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -780,8 +834,21 @@ function bindEvents() {
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && $('report-dialog').open) closeReportDialog();
+    else if (event.key === 'Escape' && $('a11y-dialog') && $('a11y-dialog').open) closePrefs();
     else if (event.key === 'Escape' && $('detail-panel') && !$('detail-panel').hidden) closeDetailPanel();
   });
+  $('a11y-open')?.addEventListener('click', openPrefs);
+  $('a11y-close')?.addEventListener('click', closePrefs);
+  $('a11y-done')?.addEventListener('click', closePrefs);
+  $('a11y-reset')?.addEventListener('click', () => { prefs = {}; writePrefs(); applyPrefs(); syncPrefControls(); showToast('Preferences reset to defaults.'); });
+  $('pref-textsize')?.addEventListener('change', () => setPref('textSize', $('pref-textsize').value));
+  $('pref-contrast')?.addEventListener('change', () => setPref('contrast', $('pref-contrast').checked));
+  $('pref-cindependent')?.addEventListener('change', () => setPref('colorIndependent', $('pref-cindependent').checked));
+  $('pref-serif')?.addEventListener('change', () => setPref('serif', $('pref-serif').checked));
+  $('pref-reducemotion')?.addEventListener('change', () => setPref('reduceMotion', $('pref-reducemotion').checked));
+  $('pref-simple')?.addEventListener('change', () => setPref('simple', $('pref-simple').checked));
+  $('pref-language')?.addEventListener('change', () => { setPref('language', $('pref-language').value); applyLanguage(); });
+  $('a11y-dialog')?.addEventListener('click', event => { if (event.target === $('a11y-dialog')) closePrefs(); });
 }
 
 function readSavedSearches() {
@@ -952,6 +1019,7 @@ function renderLayerToggles() {
   });
 }
 function init() {
+  applyPrefs();
   populateReportPlaces();
   populateReportTypes();
   renderNeighborhoodFilter();

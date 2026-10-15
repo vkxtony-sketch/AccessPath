@@ -24,6 +24,7 @@
     <nav class="top-nav" aria-label="Main navigation">
       <a class="nav-link active" href="#explore">Explore</a>
       <a class="nav-link" href="#how-it-works">How it works</a>
+      <button class="button button-outline button-small" id="a11y-open" aria-haspopup="dialog">Accessibility</button>
       <button class="button button-dark button-small" id="header-report">＋ Report a barrier</button>
     </nav>
   </header>
@@ -156,5 +157,18 @@
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <aside id="detail-panel" class="detail-panel" aria-labelledby="detail-title" hidden></aside>
+
+  <dialog id="a11y-dialog" class="report-dialog a11y-dialog" aria-labelledby="a11y-heading">
+    <div class="dialog-head"><div><div class="eyebrow">DISPLAY &amp; LANGUAGE</div><h2 id="a11y-heading">Accessibility preferences</h2></div><button type="button" class="dialog-close" id="a11y-close" aria-label="Close accessibility preferences">×</button></div>
+    <p class="dialog-copy">Adjust how AccessPath looks and reads. Your choices are saved on this device only.</p>
+    <div class="pref-row"><label for="pref-textsize">Text size</label><select id="pref-textsize"><option value="default">Default</option><option value="large">Large</option><option value="xlarge">Extra large</option></select></div>
+    <div class="pref-row"><label class="filter-option"><input type="checkbox" id="pref-contrast"><span class="fake-check" aria-hidden="true"></span><span>High contrast</span></label></div>
+    <div class="pref-row"><label class="filter-option"><input type="checkbox" id="pref-cindependent"><span class="fake-check" aria-hidden="true"></span><span>Color-independent status labels</span></label></div>
+    <div class="pref-row"><label class="filter-option"><input type="checkbox" id="pref-serif"><span class="fake-check" aria-hidden="true"></span><span>More readable serif font</span></label></div>
+    <div class="pref-row"><label class="filter-option"><input type="checkbox" id="pref-reducemotion"><span class="fake-check" aria-hidden="true"></span><span>Reduce motion</span></label></div>
+    <div class="pref-row"><label class="filter-option"><input type="checkbox" id="pref-simple"><span class="fake-check" aria-hidden="true"></span><span>Simplified mode (hide advanced options)</span></label></div>
+    <div class="pref-row"><label for="pref-language">Language</label><select id="pref-language"><option value="en">English</option><option value="es">Español</option></select></div>
+    <div class="dialog-actions"><button type="button" class="button button-outline" id="a11y-reset">Reset preferences</button><button type="button" class="button button-dark" id="a11y-done">Done</button></div>
+  </dialog>
 </body>
 </html>
