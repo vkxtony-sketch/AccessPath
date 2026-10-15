@@ -130,6 +130,14 @@ function isOpenNow(place, now = new Date()) {
     return minutes >= open && minutes < close;
   });
 }
+function renderAmenityFilter() {
+  const select = $('filter-amenity');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = `<option value="">Any amenity</option>` +
+    FEATURES.map(feature => `<option value="${escapeHTML(feature.key)}">${escapeHTML(feature.label)} documented</option>`).join('');
+  if (FEATURES.some(feature => feature.key === current)) select.value = current;
+}
 function currentFilteredPlaces() {
   const terms = normalizeText($('search-input').value.trim()).split(' ').filter(Boolean);
   const wantsWheelchair = $('filter-wheelchair').checked;
@@ -137,6 +145,7 @@ function currentFilteredPlaces() {
   const wantsTactile = $('filter-tactile').checked;
   const wantsOpen = $('filter-open') ? $('filter-open').checked : false;
   const neighborhood = $('filter-neighborhood')?.value || '';
+  const amenity = $('filter-amenity')?.value || '';
   return places.filter(place => {
     const haystack = searchHaystack(place);
     const matchesText = terms.every(term => haystack.includes(term));
@@ -147,7 +156,8 @@ function currentFilteredPlaces() {
     const matchesParking = !wantsParking || featureValue(place, 'parking') === 'yes';
     const matchesTactile = !wantsTactile || featureValue(place, 'tactile') === 'yes';
     const matchesOpen = !wantsOpen || isOpenNow(place) === true;
-    return matchesText && matchesNeighborhood && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile && matchesOpen;
+    const matchesAmenity = !amenity || featureValue(place, amenity) === 'yes';
+    return matchesText && matchesNeighborhood && matchesCategory && matchesArea && matchesWheelchair && matchesParking && matchesTactile && matchesOpen && matchesAmenity;
   });
 }
 function distanceMiles(lat1, lng1, lat2, lng2) {
@@ -472,6 +482,7 @@ function resetFilters() {
   $('filter-tactile').checked = false;
   if ($('filter-open')) $('filter-open').checked = false;
   if ($('filter-neighborhood')) $('filter-neighborhood').value = '';
+  if ($('filter-amenity')) $('filter-amenity').value = '';
   areaFilter = null;
   const areaControl = document.querySelector('.area-control');
   if (areaControl) L.DomUtil.removeClass(areaControl, 'active');
@@ -497,6 +508,7 @@ function bindEvents() {
   $('sort-select')?.addEventListener('change', renderPlaceList);
   $('nearby-radius')?.addEventListener('change', renderPlaceList);
   $('filter-neighborhood')?.addEventListener('change', renderPlaceList);
+  $('filter-amenity')?.addEventListener('change', renderPlaceList);
   $('use-my-location')?.addEventListener('click', locateUser);
   $('save-search')?.addEventListener('click', saveCurrentSearch);
   $('copy-link')?.addEventListener('click', copyShareLink);
@@ -560,6 +572,7 @@ function captureSearchState() {
     tactile: $('filter-tactile').checked,
     open: $('filter-open') ? $('filter-open').checked : false,
     neighborhood: $('filter-neighborhood') ? $('filter-neighborhood').value : '',
+    amenity: $('filter-amenity') ? $('filter-amenity').value : '',
     categories: { ...categoryEnabled },
     sort: $('sort-select') ? $('sort-select').value : 'default',
     radius: $('nearby-radius') ? $('nearby-radius').value : '0'
@@ -572,6 +585,7 @@ function applySearchState(state) {
   $('filter-tactile').checked = !!state.tactile;
   if ($('filter-open')) $('filter-open').checked = !!state.open;
   if ($('filter-neighborhood')) $('filter-neighborhood').value = state.neighborhood || '';
+  if ($('filter-amenity')) $('filter-amenity').value = state.amenity || '';
   Object.keys(categoryEnabled).forEach(key => delete categoryEnabled[key]);
   Object.assign(categoryEnabled, state.categories || {});
   if ($('sort-select')) $('sort-select').value = state.sort || 'default';
@@ -625,6 +639,7 @@ function readUrlState() {
     tactile: params.get('tact') === '1',
     open: params.get('open') === '1',
     neighborhood: params.get('hood') || '',
+    amenity: params.get('amenity') || '',
     sort: params.get('sort') || 'default',
     radius: params.get('radius') || '0',
     categories: {}
@@ -640,6 +655,7 @@ function applyUrlStateInputs(state) {
   $('filter-tactile').checked = state.tactile;
   if ($('filter-open')) $('filter-open').checked = state.open;
   if ($('filter-neighborhood') && state.neighborhood) $('filter-neighborhood').value = state.neighborhood;
+  if ($('filter-amenity') && state.amenity) $('filter-amenity').value = state.amenity;
   Object.assign(categoryEnabled, state.categories);
   if ($('sort-select')) $('sort-select').value = state.sort;
   if ($('nearby-radius')) $('nearby-radius').value = state.radius;
@@ -653,6 +669,7 @@ function updateUrlState() {
   if (state.tactile) params.set('tact', '1');
   if (state.open) params.set('open', '1');
   if (state.neighborhood) params.set('hood', state.neighborhood);
+  if (state.amenity) params.set('amenity', state.amenity);
   if (state.sort !== 'default') params.set('sort', state.sort);
   if (state.radius !== '0') params.set('radius', state.radius);
   const hidden = Object.keys(state.categories).filter(key => state.categories[key] === false);
@@ -697,6 +714,7 @@ function renderLayerToggles() {
 function init() {
   populateReportPlaces();
   renderNeighborhoodFilter();
+  renderAmenityFilter();
   applyUrlStateInputs(pendingUrlState);
   updateSearchSuggestions();
   renderLayerToggles();
