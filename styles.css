@@ -70,6 +70,7 @@ html.pref-simple .advanced{display:none!important}
 .map-wrap.expanded{position:fixed;inset:0;z-index:2000;border-radius:0;height:100vh}
 .leaflet-control-zoom a{width:34px;height:34px;line-height:34px}
 @media (max-width:760px){.leaflet-touch .leaflet-bar a{width:42px;height:42px;line-height:42px;font-size:20px}}
+.offline-banner{background:#8a6317;color:#fff;text-align:center;font-size:12.5px;font-weight:600;padding:8px 16px}
 html[data-textsize="large"] body{zoom:1.12}
 html[data-textsize="xlarge"] body{zoom:1.25}
 @supports not (zoom:1){html[data-textsize="large"] body{font-size:17px}html[data-textsize="xlarge"] body{font-size:19px}}

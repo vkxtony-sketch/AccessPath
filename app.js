@@ -483,6 +483,11 @@ function toggleMapExpand() {
   document.body.classList.toggle('map-expanded', expanded);
   if (map) setTimeout(() => map.invalidateSize(), 220);
 }
+function updateOnlineStatus() {
+  const banner = $('offline-banner');
+  if (!banner) return;
+  banner.hidden = navigator.onLine;
+}
 function initMap() {
   if (!window.L) {
     $('map').innerHTML = '<div class="map-error"><strong>The interactive map could not load.</strong><p>Check your internet connection and refresh this page. You can still use the location list.</p></div>';
@@ -1252,4 +1257,7 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('./sw.js').catch(error => console.warn('AccessPath service worker did not register:', error));
     });
   }
+  updateOnlineStatus();
+  window.addEventListener('online', () => { updateOnlineStatus(); showToast('You are back online.'); });
+  window.addEventListener('offline', () => { updateOnlineStatus(); });
 });
